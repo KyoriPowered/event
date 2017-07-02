@@ -31,6 +31,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -101,6 +102,12 @@ public final class ASMEventExecutorFactory implements EventExecutor.Factory {
   @Nonnull
   @Override
   public EventExecutor create(@Nonnull final Object object, @Nonnull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    if(!Modifier.isPublic(object.getClass().getModifiers())) {
+      throw new IllegalArgumentException(String.format("Listener class '%s' must be public", object.getClass().getName()));
+    }
+    if(!Modifier.isPublic(method.getModifiers())) {
+      throw new IllegalArgumentException(String.format("Subscriber method '%s' must be public", method));
+    }
     return this.cache.get(method).newInstance();
   }
 
