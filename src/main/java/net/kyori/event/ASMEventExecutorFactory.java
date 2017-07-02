@@ -1,0 +1,118 @@
+/*
+ * This file is part of event, licensed under the MIT License.
+ *
+ * Copyright (c) 2017 KyoriPowered
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package net.kyori.event;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nonnull;
+
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_8;
+
+/**
+ * An executor factory which uses ASM to create event executors.
+ */
+public final class ASMEventExecutorFactory implements EventExecutor.Factory {
+
+  private static final String PACKAGE = "net.kyori.event.asm.generated";
+  private static final String SUPER_NAME = "java/lang/Object";
+  private static final String EXECUTE_DESC = "(Ljava/lang/Object;Ljava/lang/Object;)V";
+  private static final DefiningClassLoader CLASS_LOADER = new DefiningClassLoader(ASMEventExecutorFactory.class.getClassLoader());
+  private static final String[] GENERATED_EVENT_EXECUTOR_NAME = new String[]{Type.getInternalName(EventExecutor.class)};
+  private final String session = UUID.randomUUID().toString().substring(26);
+  private final AtomicInteger id = new AtomicInteger();
+  private final LoadingCache<Method, Class<? extends EventExecutor>> cache = Caffeine.newBuilder()
+    .initialCapacity(16)
+    .weakValues()
+    .build(method -> {
+      final Class<?> listener = method.getDeclaringClass();
+      final String listenerName = Type.getInternalName(listener);
+      final Class<?> parameter = method.getParameterTypes()[0];
+      final String className = this.executorClassName(listener, method, parameter);
+      final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+      cw.visit(V1_8, ACC_PUBLIC | ACC_FINAL, className.replace('.', '/'), null, SUPER_NAME, GENERATED_EVENT_EXECUTOR_NAME);
+      MethodVisitor mv;
+      {
+        mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, SUPER_NAME, "<init>", "()V", false);
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+      }
+      {
+        mv = cw.visitMethod(ACC_PUBLIC, "execute", EXECUTE_DESC, null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 1);
+        mv.visitTypeInsn(CHECKCAST, listenerName);
+        mv.visitVarInsn(ALOAD, 2);
+        mv.visitTypeInsn(CHECKCAST, Type.getInternalName(parameter));
+        mv.visitMethodInsn(INVOKEVIRTUAL, listenerName, method.getName(), Type.getMethodDescriptor(method), false);
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+      }
+      cw.visitEnd();
+      return CLASS_LOADER.defineClass(className, cw.toByteArray());
+    });
+
+  @Nonnull
+  private String executorClassName(final Class<?> listener, final Method method, final Class<?> parameter) {
+    return String.format("%s.%s.%s-%s-%s-%d", PACKAGE, this.session, listener.getSimpleName(), method.getName(), parameter.getSimpleName(), this.id.incrementAndGet());
+  }
+
+  @Nonnull
+  @Override
+  public EventExecutor create(@Nonnull final Object object, @Nonnull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    return this.cache.get(method).newInstance();
+  }
+
+  // A class loader with a method exposed to define a class.
+  private static final class DefiningClassLoader extends ClassLoader {
+
+    private DefiningClassLoader(final ClassLoader parent) {
+      super(parent);
+    }
+
+    <T> Class<T> defineClass(final String name, final byte[] bytes) {
+      return (Class<T>) this.defineClass(name, bytes, 0, bytes.length);
+    }
+  }
+}

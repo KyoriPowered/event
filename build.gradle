@@ -23,6 +23,11 @@ repositories {
 }
 
 dependencies {
+    compile 'com.github.ben-manes.caffeine:caffeine:2.5.2'
+    compile 'com.google.code.findbugs:jsr305:3.0.2'
+    compile 'com.google.guava:guava:21.0'
+    compile 'org.ow2.asm:asm-debug-all:5.1'
+    compile 'org.slf4j:slf4j-api:1.7.25'
     testCompile 'junit:junit:4.12'
 }
 
