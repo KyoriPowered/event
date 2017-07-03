@@ -23,43 +23,29 @@
  */
 package net.kyori.event;
 
+import java.lang.reflect.Method;
+
 import javax.annotation.Nonnull;
 
 /**
- * A simple implementation of an event bus.
+ * A subscriber filter.
+ *
+ * @param <L> the listener type
  */
-public class SimpleEventBus<E, L> implements EventBus<E, L> {
+@FunctionalInterface
+public interface SubscriberFilter<L> {
 
-  private final SubscriberRegistry<E, L> registry;
+  /**
+   * A subscriber filter which always returns {@code true}.
+   */
+  SubscriberFilter<?> TRUE = (listener, method) -> true;
 
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory) {
-    this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
-  }
-
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory, @Nonnull final SubscriberFilter<L> filter) {
-    this.registry = new SubscriberRegistry<>(factory, filter);
-  }
-
-  @Override
-  public void register(@Nonnull final L listener) {
-    this.registry.register(listener);
-  }
-
-  @Override
-  public void unregister(@Nonnull final L listener) {
-    this.registry.unregister(listener);
-  }
-
-  @Override
-  public <T extends Throwable> void post(@Nonnull final E event) throws T {
-    for(final Subscriber<E> subscriber : this.registry.subscribers(event)) {
-      try {
-        subscriber.invoke(event);
-      } catch(final EventException e) {
-        throw (T) e;
-      } catch(final Throwable t) {
-        throw (T) new EventException(event, t);
-      }
-    }
-  }
+  /**
+   * Tests if a method should be registered as an event subscriber.
+   *
+   * @param listener the listener
+   * @param method the method
+   * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
+   */
+  boolean test(@Nonnull final L listener, @Nonnull final Method method);
 }

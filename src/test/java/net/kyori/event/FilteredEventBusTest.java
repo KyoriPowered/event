@@ -23,43 +23,41 @@
  */
 package net.kyori.event;
 
-import javax.annotation.Nonnull;
+import org.junit.Test;
 
-/**
- * A simple implementation of an event bus.
- */
-public class SimpleEventBus<E, L> implements EventBus<E, L> {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.concurrent.atomic.AtomicInteger;
 
-  private final SubscriberRegistry<E, L> registry;
+import static org.junit.Assert.assertEquals;
 
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory) {
-    this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
+public class FilteredEventBusTest {
+
+  private final AtomicInteger result = new AtomicInteger();
+  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
+
+  @Test
+  public void testListener() {
+    this.bus.register(new TestListener());
+    this.bus.post(new TestEvent());
+    assertEquals(1, this.result.get());
   }
 
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory, @Nonnull final SubscriberFilter<L> filter) {
-    this.registry = new SubscriberRegistry<>(factory, filter);
-  }
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface SomeFilter {}
+  public final class TestEvent {}
 
-  @Override
-  public void register(@Nonnull final L listener) {
-    this.registry.register(listener);
-  }
+  public class TestListener {
 
-  @Override
-  public void unregister(@Nonnull final L listener) {
-    this.registry.unregister(listener);
-  }
+    @Subscribe
+    public void withoutFilter(final TestEvent event) {
+      FilteredEventBusTest.this.result.getAndIncrement();
+    }
 
-  @Override
-  public <T extends Throwable> void post(@Nonnull final E event) throws T {
-    for(final Subscriber<E> subscriber : this.registry.subscribers(event)) {
-      try {
-        subscriber.invoke(event);
-      } catch(final EventException e) {
-        throw (T) e;
-      } catch(final Throwable t) {
-        throw (T) new EventException(event, t);
-      }
+    @SomeFilter
+    @Subscribe
+    public void withFilter(final TestEvent event) {
+      FilteredEventBusTest.this.result.getAndIncrement();
     }
   }
 }

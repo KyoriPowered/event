@@ -51,6 +51,7 @@ final class SubscriberRegistry<E, L> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberRegistry.class);
   private final Object lock = new Object();
   private final EventExecutor.Factory<E, L> factory;
+  private final SubscriberFilter<L> filter;
   private final Multimap<Class<?>, Subscriber<E>> subscribers = HashMultimap.create();
   private final LoadingCache<Class<?>, List<Subscriber<E>>> cache = Caffeine.newBuilder()
     .initialCapacity(85)
@@ -65,15 +66,16 @@ final class SubscriberRegistry<E, L> {
       return subscribers;
     });
 
-  SubscriberRegistry(@Nonnull final EventExecutor.Factory<E, L> factory) {
+  SubscriberRegistry(@Nonnull final EventExecutor.Factory<E, L> factory, @Nonnull final SubscriberFilter<L> filter) {
     this.factory = factory;
+    this.filter = filter;
   }
 
   void register(@Nonnull final L listener) {
     final List<Subscriber<E>> subscribers = new ArrayList<>();
     for(final Method method : listener.getClass().getDeclaredMethods()) {
       final Subscribe definition = method.getAnnotation(Subscribe.class);
-      if(definition == null) {
+      if(definition == null || !this.filter.test(listener, method)) {
         continue;
       }
       final EventExecutor<E, L> executor;
