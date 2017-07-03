@@ -40,16 +40,22 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-final class SubscriberRegistry {
+/**
+ * A subscriber registry.
+ *
+ * @param <E> the event type
+ * @param <L> the listener type
+ */
+final class SubscriberRegistry<E, L> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberRegistry.class);
   private final Object lock = new Object();
-  private final EventExecutor.Factory factory;
-  private final Multimap<Class<?>, Subscriber> subscribers = HashMultimap.create();
-  private final LoadingCache<Class<?>, List<Subscriber>> cache = Caffeine.newBuilder()
+  private final EventExecutor.Factory<E, L> factory;
+  private final Multimap<Class<?>, Subscriber<E>> subscribers = HashMultimap.create();
+  private final LoadingCache<Class<?>, List<Subscriber<E>>> cache = Caffeine.newBuilder()
     .initialCapacity(85)
     .build(eventClass -> {
-      final List<Subscriber> subscribers = new ArrayList<>();
+      final List<Subscriber<E>> subscribers = new ArrayList<>();
       final Set<? extends Class<?>> types = TypeToken.of(eventClass).getTypes().rawTypes();
       synchronized(SubscriberRegistry.this.lock) {
         for(final Class<?> type : types) {
@@ -59,25 +65,25 @@ final class SubscriberRegistry {
       return subscribers;
     });
 
-  SubscriberRegistry(@Nonnull final EventExecutor.Factory factory) {
+  SubscriberRegistry(@Nonnull final EventExecutor.Factory<E, L> factory) {
     this.factory = factory;
   }
 
-  void register(@Nonnull final Object listener) {
-    final List<Subscriber> subscribers = new ArrayList<>();
+  void register(@Nonnull final L listener) {
+    final List<Subscriber<E>> subscribers = new ArrayList<>();
     for(final Method method : listener.getClass().getDeclaredMethods()) {
       final Subscribe definition = method.getAnnotation(Subscribe.class);
       if(definition == null) {
         continue;
       }
-      final EventExecutor executor;
+      final EventExecutor<E, L> executor;
       try {
         executor = this.factory.create(listener, method);
       } catch(final Exception e) {
         LOGGER.error("Encountered an exception while creating an event executor for method '" + method + '\'', e);
         continue;
       }
-      subscribers.add(new Subscriber(method.getParameterTypes()[0], new EventProcessorImpl(executor, listener)));
+      subscribers.add(new Subscriber<>(method.getParameterTypes()[0], new EventProcessorImpl<>(executor, listener)));
     }
     if(subscribers.isEmpty()) {
       return;
@@ -88,10 +94,10 @@ final class SubscriberRegistry {
     }
   }
 
-  void unregister(@Nonnull final Object listener) {
+  void unregister(@Nonnull final L listener) {
     synchronized(this.lock) {
       boolean dirty = false;
-      final Iterator<Subscriber> it = this.subscribers.values().iterator();
+      final Iterator<Subscriber<E>> it = this.subscribers.values().iterator();
       while(it.hasNext()) {
         final Subscriber subscriber = it.next();
         if(subscriber.processor instanceof EventProcessorImpl && ((EventProcessorImpl) subscriber.processor).listener.equals(listener)) {
@@ -106,22 +112,22 @@ final class SubscriberRegistry {
   }
 
   @Nonnull
-  List<Subscriber> subscribers(@Nonnull final Object event) {
+  List<Subscriber<E>> subscribers(@Nonnull final Object event) {
     return this.cache.get(event.getClass());
   }
 
-  final class EventProcessorImpl implements EventProcessor {
+  static final class EventProcessorImpl<E, L> implements EventProcessor<E> {
 
-    @Nonnull private final EventExecutor executor;
-    @Nonnull private final Object listener;
+    @Nonnull private final EventExecutor<E, L> executor;
+    @Nonnull private final L listener;
 
-    EventProcessorImpl(@Nonnull final EventExecutor executor, @Nonnull final Object listener) {
+    EventProcessorImpl(@Nonnull final EventExecutor<E, L> executor, @Nonnull final L listener) {
       this.executor = executor;
       this.listener = listener;
     }
 
     @Override
-    public void invoke(@Nonnull final Object event) throws EventException {
+    public void invoke(@Nonnull final E event) throws Throwable {
       this.executor.execute(this.listener, event);
     }
 

@@ -29,24 +29,30 @@ import javax.annotation.Nonnull;
 
 /**
  * An event executor.
+ *
+ * @param <E> the event type
+ * @param <L> the listener type
  */
 @FunctionalInterface
-public interface EventExecutor {
+public interface EventExecutor<E, L> {
 
   /**
    * Executes an event.
    *
    * @param listener the listener
    * @param event the event
-   * @throws EventException if an exception occurred
+   * @throws Throwable if an exception occurred
    */
-  void execute(@Nonnull final Object listener, @Nonnull final Object event) throws EventException;
+  void execute(@Nonnull final L listener, @Nonnull final E event) throws Throwable;
 
   /**
    * An event executor factory.
+   *
+   * @param <E> the event type
+   * @param <L> the listener type
    */
   @FunctionalInterface
-  interface Factory {
+  interface Factory<E, L> {
 
     /**
      * Creates an event executor.
@@ -57,6 +63,6 @@ public interface EventExecutor {
      * @throws Exception if an exception occurred while creating an executor
      */
     @Nonnull
-    EventExecutor create(@Nonnull final Object object, @Nonnull final Method method) throws Exception;
+    EventExecutor<E, L> create(@Nonnull final Object object, @Nonnull final Method method) throws Exception;
   }
 }

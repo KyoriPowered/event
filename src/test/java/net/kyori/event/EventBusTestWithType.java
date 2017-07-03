@@ -23,51 +23,40 @@
  */
 package net.kyori.event;
 
-import com.google.common.base.MoreObjects;
+import org.junit.Test;
 
-import java.util.Objects;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import javax.annotation.Nonnull;
+public class EventBusTestWithType {
 
-/**
- * A subscriber.
- *
- * @param <E> the event type
- */
-final class Subscriber<E> implements EventProcessor<E> {
+  private final EventBus<Event, Listener> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
-  @Nonnull final Class<?> event;
-  @Nonnull final EventProcessor<E> processor;
-
-  Subscriber(@Nonnull final Class<?> event, @Nonnull final EventProcessor<E> processor) {
-    this.event = event;
-    this.processor = processor;
+  @Test
+  public void testListener() {
+    final MyListener listener = new MyListener();
+    this.bus.register(listener);
+    // first post should set result[0] to true
+    this.bus.post(new MyEvent());
+    assertTrue(listener.result[0]);
+    this.bus.unregister(listener);
+    listener.result[0] = false;
+    // second post should not, as the listener has been unregistered
+    this.bus.post(new MyEvent());
+    assertFalse(listener.result[0]);
   }
 
-  @Override
-  public void invoke(@Nonnull final E event) throws Throwable {
-    this.processor.invoke(event);
-  }
+  public interface Event {}
+  public class MyEvent implements Event {}
+  public interface Listener {}
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.event, this.processor);
-  }
+  public class MyListener implements Listener {
 
-  @Override
-  public boolean equals(final Object other) {
-    if(this == other) return true;
-    if(other == null || !(other instanceof Subscriber)) return false;
-    final Subscriber that = (Subscriber) other;
-    return Objects.equals(this.event, that.event)
-      && Objects.equals(this.processor, that.processor);
-  }
+    final boolean[] result = new boolean[1];
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-      .add("event", this.event)
-      .add("processor", this.processor)
-      .toString();
+    @Subscribe
+    public void event(final MyEvent event) {
+      this.result[0] = true;
+    }
   }
 }

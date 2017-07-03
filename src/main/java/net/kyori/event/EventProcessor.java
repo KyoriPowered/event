@@ -25,8 +25,13 @@ package net.kyori.event;
 
 import javax.annotation.Nonnull;
 
+/**
+ * An event processor.
+ *
+ * @param <E> the event type
+ */
 @FunctionalInterface
-interface EventProcessor {
+interface EventProcessor<E> {
 
-  void invoke(@Nonnull final Object event) throws EventException;
+  void invoke(@Nonnull final E event) throws Throwable;
 }

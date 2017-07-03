@@ -28,31 +28,33 @@ import javax.annotation.Nonnull;
 /**
  * A simple implementation of an event bus.
  */
-public class SimpleEventBus implements EventBus {
+public class SimpleEventBus<E, L> implements EventBus<E, L> {
 
-  private final SubscriberRegistry registry;
+  private final SubscriberRegistry<E, L> registry;
 
-  public SimpleEventBus(final EventExecutor.Factory factory) {
-    this.registry = new SubscriberRegistry(factory);
+  public SimpleEventBus(final EventExecutor.Factory<E, L> factory) {
+    this.registry = new SubscriberRegistry<>(factory);
   }
 
   @Override
-  public void register(@Nonnull final Object listener) {
+  public void register(@Nonnull final L listener) {
     this.registry.register(listener);
   }
 
   @Override
-  public void unregister(@Nonnull final Object listener) {
+  public void unregister(@Nonnull final L listener) {
     this.registry.unregister(listener);
   }
 
   @Override
-  public void post(@Nonnull final Object event) {
-    for(final Subscriber subscriber : this.registry.subscribers(event)) {
+  public <T extends Throwable> void post(@Nonnull final E event) throws T {
+    for(final Subscriber<E> subscriber : this.registry.subscribers(event)) {
       try {
         subscriber.invoke(event);
       } catch(final EventException e) {
-        throw new RuntimeException(e);
+        throw (T) e;
+      } catch(final Throwable t) {
+        throw (T) new EventException(event, t);
       }
     }
   }

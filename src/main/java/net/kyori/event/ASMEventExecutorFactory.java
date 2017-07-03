@@ -48,8 +48,11 @@ import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
  * An executor factory which uses ASM to create event executors.
+ *
+ * @param <E> the event type
+ * @param <L> the listener type
  */
-public final class ASMEventExecutorFactory implements EventExecutor.Factory {
+public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factory<E, L> {
 
   private static final String PACKAGE = "net.kyori.event.asm.generated";
   private static final String SUPER_NAME = "java/lang/Object";
@@ -58,7 +61,7 @@ public final class ASMEventExecutorFactory implements EventExecutor.Factory {
   private static final String[] GENERATED_EVENT_EXECUTOR_NAME = new String[]{Type.getInternalName(EventExecutor.class)};
   private final String session = UUID.randomUUID().toString().substring(26);
   private final AtomicInteger id = new AtomicInteger();
-  private final LoadingCache<Method, Class<? extends EventExecutor>> cache = Caffeine.newBuilder()
+  private final LoadingCache<Method, Class<? extends EventExecutor<E, L>>> cache = Caffeine.newBuilder()
     .initialCapacity(16)
     .weakValues()
     .build(method -> {
@@ -101,7 +104,7 @@ public final class ASMEventExecutorFactory implements EventExecutor.Factory {
 
   @Nonnull
   @Override
-  public EventExecutor create(@Nonnull final Object object, @Nonnull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+  public EventExecutor<E, L> create(@Nonnull final Object object, @Nonnull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
     if(!Modifier.isPublic(object.getClass().getModifiers())) {
       throw new IllegalArgumentException(String.format("Listener class '%s' must be public", object.getClass().getName()));
     }

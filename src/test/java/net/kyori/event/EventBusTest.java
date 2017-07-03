@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 public class EventBusTest {
 
   private final boolean[] result = new boolean[1];
-  private final EventBus bus = new SimpleEventBus(new ASMEventExecutorFactory());
+  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
   public void testListener() {
