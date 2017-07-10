@@ -11,6 +11,12 @@ version '1.0.0-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-path', '-parameters']
+    options.deprecation = true
+    options.encoding = 'UTF-8'
+}
+
 license {
     header project.file('header.txt')
     include '**/*.java'
@@ -25,6 +31,7 @@ repositories {
 dependencies {
     compile 'com.github.ben-manes.caffeine:caffeine:2.5.2'
     compile 'com.google.code.findbugs:jsr305:3.0.2'
+    compile 'com.google.errorprone:error_prone_annotations:2.0.15'
     compile 'com.google.guava:guava:21.0'
     compile 'org.ow2.asm:asm-debug-all:5.1'
     compile 'org.slf4j:slf4j-api:1.7.25'
