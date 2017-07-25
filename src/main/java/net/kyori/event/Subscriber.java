@@ -57,8 +57,8 @@ final class Subscriber<E> implements EventProcessor<E> {
   @Override
   public boolean equals(final Object other) {
     if(this == other) return true;
-    if(other == null || !(other instanceof Subscriber)) return false;
-    final Subscriber that = (Subscriber) other;
+    if(other == null || !(other instanceof Subscriber<?>)) return false;
+    final Subscriber<?> that = (Subscriber<?>) other;
     return Objects.equals(this.event, that.event)
       && Objects.equals(this.processor, that.processor);
   }

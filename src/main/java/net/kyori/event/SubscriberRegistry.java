@@ -49,6 +49,9 @@ import javax.annotation.Nonnull;
 final class SubscriberRegistry<E, L> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberRegistry.class);
+  private static final LoadingCache<Class<?>, Set<Class<?>>> CLASS_HIERARCHY = Caffeine.newBuilder()
+    .weakKeys()
+    .build(key -> (Set<Class<?>>) TypeToken.of(key).getTypes().rawTypes());
   private final Object lock = new Object();
   private final EventExecutor.Factory<E, L> factory;
   private final SubscriberFilter<L> filter;
@@ -57,7 +60,8 @@ final class SubscriberRegistry<E, L> {
     .initialCapacity(85)
     .build(eventClass -> {
       final List<Subscriber<E>> subscribers = new ArrayList<>();
-      final Set<? extends Class<?>> types = TypeToken.of(eventClass).getTypes().rawTypes();
+      final Set<? extends Class<?>> types = CLASS_HIERARCHY.get(eventClass);
+      assert types != null;
       synchronized(SubscriberRegistry.this.lock) {
         for(final Class<?> type : types) {
           subscribers.addAll(SubscriberRegistry.this.subscribers.get(type));
@@ -101,7 +105,7 @@ final class SubscriberRegistry<E, L> {
       boolean dirty = false;
       final Iterator<Subscriber<E>> it = this.subscribers.values().iterator();
       while(it.hasNext()) {
-        final Subscriber subscriber = it.next();
+        final Subscriber<?> subscriber = it.next();
         if(subscriber.processor instanceof EventProcessorImpl && ((EventProcessorImpl) subscriber.processor).listener.equals(listener)) {
           it.remove();
           dirty = true;
