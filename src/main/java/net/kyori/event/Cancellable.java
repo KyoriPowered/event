@@ -23,20 +23,44 @@
  */
 package net.kyori.event;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Marks a method as an event subscriber.
- *
- * @see IncludeCancelled
+ * A cancellable event.
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Subscribe {
+public interface Cancellable {
 
+  /**
+   * Tests if the event has been cancelled.
+   *
+   * @return {@code true} if the event has been cancelled, {@code false} otherwise
+   */
+  boolean cancelled();
+
+  /**
+   * Sets the cancelled state of the event.
+   *
+   * @param cancelled {@code true} if the event should be cancelled, {@code false} otherwise
+   */
+  void cancelled(final boolean cancelled);
+
+  /**
+   * An abstract implementation of a cancellable event.
+   *
+   * <p>This implementation is not always possible to use if {@link EventBus} requires events
+   * to implement an {@code abstract} class.</p>
+   */
+  abstract class Impl implements Cancellable {
+
+    // protected to allow children classes to access
+    protected boolean cancelled;
+
+    @Override
+    public boolean cancelled() {
+      return this.cancelled;
+    }
+
+    @Override
+    public void cancelled(final boolean cancelled) {
+      this.cancelled = cancelled;
+    }
+  }
 }

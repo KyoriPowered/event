@@ -30,13 +30,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an event subscriber.
- *
- * @see IncludeCancelled
+ * Marks an event subscriber that should receive events even if they have been {@link Cancellable#cancelled() cancelled}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Subscribe {
-
+public @interface IncludeCancelled {
 }

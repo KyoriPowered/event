@@ -89,7 +89,7 @@ final class SubscriberRegistry<E, L> {
         LOGGER.error("Encountered an exception while creating an event executor for method '" + method + '\'', e);
         continue;
       }
-      subscribers.add(new Subscriber<>(method.getParameterTypes()[0], new EventProcessorImpl<>(executor, listener)));
+      subscribers.add(new Subscriber<>(method.getParameterTypes()[0], new EventProcessorImpl<>(executor, listener), method.isAnnotationPresent(IncludeCancelled.class)));
     }
     if(subscribers.isEmpty()) {
       return;

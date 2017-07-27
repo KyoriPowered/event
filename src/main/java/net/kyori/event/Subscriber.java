@@ -38,14 +38,19 @@ final class Subscriber<E> implements EventProcessor<E> {
 
   @Nonnull final Class<?> event;
   @Nonnull final EventProcessor<E> processor;
+  private final boolean includeCancelled;
 
-  Subscriber(@Nonnull final Class<?> event, @Nonnull final EventProcessor<E> processor) {
+  Subscriber(@Nonnull final Class<?> event, @Nonnull final EventProcessor<E> processor, final boolean includeCancelled) {
     this.event = event;
     this.processor = processor;
+    this.includeCancelled = includeCancelled;
   }
 
   @Override
   public void invoke(@Nonnull final E event) throws Throwable {
+    if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !this.includeCancelled)) {
+      return;
+    }
     this.processor.invoke(event);
   }
 

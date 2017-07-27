@@ -25,37 +25,66 @@ package net.kyori.event;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertEquals;
 
 public class EventBusTest {
 
-  private final boolean[] result = new boolean[1];
   private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
   public void testListener() {
     final TestListener listener = new TestListener();
     this.bus.register(listener);
-    // first post should set result[0] to true
-    this.bus.post(new TestEvent());
-    assertTrue(this.result[0]);
+    final TestEvent event = new TestEvent();
+    event.cancelled(true);
+    this.bus.post(event);
+    assertEquals(0, event.count.get());
+    event.cancelled(false);
+    this.bus.post(event);
+    final TestListenerWithCancelled listenerWithCancelled = new TestListenerWithCancelled();
+    this.bus.register(listenerWithCancelled);
+    event.cancelled(false);
+    this.bus.post(event);
+    assertEquals(3, event.count.get());
     this.bus.unregister(listener);
-    this.result[0] = false;
-    // second post should not, as the listener has been unregistered
-    this.bus.post(new TestEvent());
-    assertFalse(this.result[0]);
+    this.bus.unregister(listenerWithCancelled);
+    event.cancelled(false);
+    this.bus.post(event);
+    assertEquals(0, event.count.get());
   }
 
-  public final class TestEvent {
+  public final class TestEvent extends Cancellable.Impl {
 
+    final AtomicInteger count = new AtomicInteger(0);
+
+    @Override
+    public void cancelled(final boolean cancelled) {
+      this.cancelled = cancelled;
+      this.count.set(0);
+    }
   }
 
   public class TestListener {
 
     @Subscribe
     public void event(final TestEvent event) {
-      EventBusTest.this.result[0] = true;
+      event.count.incrementAndGet();
+    }
+
+    @Subscribe
+    public void cancelledExcluded(final TestEvent event) {
+      event.count.incrementAndGet();
+    }
+  }
+
+  public class TestListenerWithCancelled {
+
+    @IncludeCancelled
+    @Subscribe
+    public void cancelledIncluded(final TestEvent event) {
+      event.count.incrementAndGet();
     }
   }
 }
