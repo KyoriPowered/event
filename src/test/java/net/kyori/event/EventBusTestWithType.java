@@ -23,7 +23,11 @@
  */
 package net.kyori.event;
 
+import com.google.common.reflect.TypeToken;
+import net.kyori.lunar.reflect.Reified;
 import org.junit.Test;
+
+import javax.annotation.Nonnull;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -39,6 +43,18 @@ public class EventBusTestWithType {
     // first post should set result[0] to true
     this.bus.post(new MyEvent());
     assertTrue(listener.result[0]);
+    assertFalse(listener.result[1]);
+    assertFalse(listener.result[2]);
+    listener.reset();
+    this.bus.post(new GenericEvent<>(Foo.class));
+    assertFalse(listener.result[0]);
+    assertTrue(listener.result[1]);
+    assertFalse(listener.result[2]);
+    listener.reset();
+    this.bus.post(new GenericEvent<>(Bar.class));
+    assertFalse(listener.result[0]);
+    assertFalse(listener.result[1]);
+    assertTrue(listener.result[2]);
     this.bus.unregister(listener);
     listener.result[0] = false;
     // second post should not, as the listener has been unregistered
@@ -46,17 +62,49 @@ public class EventBusTestWithType {
     assertFalse(listener.result[0]);
   }
 
+  private interface Foo {}
+  private interface Bar {}
   public interface Event {}
   public class MyEvent implements Event {}
+  public class GenericEvent<T> implements Event, Reified<T> {
+
+    private final TypeToken<T> type;
+
+    GenericEvent(final Class<T> type) {
+      this.type = TypeToken.of(type);
+    }
+
+    @Nonnull
+    @Override
+    public TypeToken<T> type() {
+      return this.type;
+    }
+  }
   public interface Listener {}
 
   public class MyListener implements Listener {
 
-    final boolean[] result = new boolean[1];
+    final boolean[] result = new boolean[3];
+
+    void reset() {
+      for(int i = 0; i < this.result.length; i++) {
+        this.result[i] = false;
+      }
+    }
 
     @Subscribe
     public void event(final MyEvent event) {
       this.result[0] = true;
+    }
+
+    @Subscribe
+    public void foo(final GenericEvent<Foo> event) {
+      this.result[1] = true;
+    }
+
+    @Subscribe
+    public void bar(final GenericEvent<Bar> event) {
+      this.result[2] = true;
     }
   }
 }
