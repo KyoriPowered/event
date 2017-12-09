@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import javax.annotation.Nonnull;
+import net.kyori.blizzard.NonNull;
 
 /**
  * An event bus.
@@ -32,20 +32,19 @@ import javax.annotation.Nonnull;
  * @param <L> the listener type
  */
 public interface EventBus<E, L> {
-
   /**
    * Registers all subscriber methods on {@code listener} to receive events.
    *
    * @param listener the listener
    */
-  void register(@Nonnull final L listener);
+  void register(@NonNull final L listener);
 
   /**
    * Unregisters all subscriber methods on a registered {@code listener}.
    *
    * @param listener the listener
    */
-  void unregister(@Nonnull final L listener);
+  void unregister(@NonNull final L listener);
 
   /**
    * Posts an event to all registered subscribers.
@@ -54,5 +53,5 @@ public interface EventBus<E, L> {
    * @param <T> the throwable type
    * @throws T if an exception was encountered
    */
-  <T extends Throwable> void post(@Nonnull final E event) throws T;
+  <T extends Throwable> void post(@NonNull final E event) throws T;
 }

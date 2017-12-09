@@ -24,6 +24,8 @@
 package net.kyori.event;
 
 import com.google.common.base.MoreObjects;
+import net.kyori.blizzard.NonNull;
+import net.kyori.blizzard.Nullable;
 import net.kyori.lunar.reflect.Reified;
 
 import java.lang.reflect.Method;
@@ -31,22 +33,18 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 /**
  * A subscriber.
  *
  * @param <E> the event type
  */
-class Subscriber<E> implements EventProcessor<E> {
-
-  @Nonnull final Class<?> event;
+final class Subscriber<E> implements EventProcessor<E> {
+  @NonNull final Class<?> event;
   @Nullable private final Type generic;
-  @Nonnull final EventProcessor<E> processor;
+  @NonNull final EventProcessor<E> processor;
   private final boolean includeCancelled;
 
-  Subscriber(@Nonnull final Method method, @Nonnull final EventProcessor<E> processor, final boolean includeCancelled) {
+  Subscriber(@NonNull final Method method, @NonNull final EventProcessor<E> processor, final boolean includeCancelled) {
     this.event = method.getParameterTypes()[0];
     this.generic = Reified.class.isAssignableFrom(this.event) ? genericType(method.getGenericParameterTypes()[0]) : null;
     this.processor = processor;
@@ -62,7 +60,7 @@ class Subscriber<E> implements EventProcessor<E> {
   }
 
   @Override
-  public void invoke(@Nonnull final E event) throws Throwable {
+  public void invoke(@NonNull final E event) throws Throwable {
     if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !this.includeCancelled)) {
       return;
     }

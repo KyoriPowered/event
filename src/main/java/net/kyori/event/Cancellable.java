@@ -27,7 +27,6 @@ package net.kyori.event;
  * A cancellable event.
  */
 public interface Cancellable {
-
   /**
    * Tests if the event has been cancelled.
    *
@@ -49,7 +48,6 @@ public interface Cancellable {
    * to implement an {@code abstract} class.</p>
    */
   abstract class Impl implements Cancellable {
-
     // protected to allow children classes to access
     protected boolean cancelled;
 

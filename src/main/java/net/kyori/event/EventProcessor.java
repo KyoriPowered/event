@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import javax.annotation.Nonnull;
+import net.kyori.blizzard.NonNull;
 
 /**
  * An event processor.
@@ -32,6 +32,5 @@ import javax.annotation.Nonnull;
  */
 @FunctionalInterface
 interface EventProcessor<E> {
-
-  void invoke(@Nonnull final E event) throws Throwable;
+  void invoke(@NonNull final E event) throws Throwable;
 }

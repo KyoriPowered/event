@@ -25,6 +25,7 @@ package net.kyori.event;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import net.kyori.blizzard.NonNull;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -34,8 +35,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nonnull;
 
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -53,7 +52,6 @@ import static org.objectweb.asm.Opcodes.V1_8;
  * @param <L> the listener type
  */
 public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factory<E, L> {
-
   private static final String PACKAGE = "net.kyori.event.asm.generated";
   private static final String SUPER_NAME = "java/lang/Object";
   private static final String EXECUTE_DESC = "(Ljava/lang/Object;Ljava/lang/Object;)V";
@@ -97,14 +95,13 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
       return CLASS_LOADER.defineClass(className, cw.toByteArray());
     });
 
-  @Nonnull
   private String executorClassName(final Class<?> listener, final Method method, final Class<?> parameter) {
     return String.format("%s.%s.%s-%s-%s-%d", PACKAGE, this.session, listener.getSimpleName(), method.getName(), parameter.getSimpleName(), this.id.incrementAndGet());
   }
 
-  @Nonnull
+  @NonNull
   @Override
-  public EventExecutor<E, L> create(@Nonnull final Object object, @Nonnull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+  public EventExecutor<E, L> create(@NonNull final Object object, @NonNull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
     if(!Modifier.isPublic(object.getClass().getModifiers())) {
       throw new IllegalArgumentException(String.format("Listener class '%s' must be public", object.getClass().getName()));
     }

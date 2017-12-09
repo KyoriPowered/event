@@ -23,35 +23,34 @@
  */
 package net.kyori.event;
 
-import javax.annotation.Nonnull;
+import net.kyori.blizzard.NonNull;
 
 /**
  * A simple implementation of an event bus.
  */
 public class SimpleEventBus<E, L> implements EventBus<E, L> {
-
   private final SubscriberRegistry<E, L> registry;
 
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory) {
+  public SimpleEventBus(@NonNull final EventExecutor.Factory<E, L> factory) {
     this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
   }
 
-  public SimpleEventBus(@Nonnull final EventExecutor.Factory<E, L> factory, @Nonnull final SubscriberFilter<L> filter) {
+  public SimpleEventBus(@NonNull final EventExecutor.Factory<E, L> factory, @NonNull final SubscriberFilter<L> filter) {
     this.registry = new SubscriberRegistry<>(factory, filter);
   }
 
   @Override
-  public void register(@Nonnull final L listener) {
+  public void register(@NonNull final L listener) {
     this.registry.register(listener);
   }
 
   @Override
-  public void unregister(@Nonnull final L listener) {
+  public void unregister(@NonNull final L listener) {
     this.registry.unregister(listener);
   }
 
   @Override
-  public <T extends Throwable> void post(@Nonnull final E event) throws T {
+  public <T extends Throwable> void post(@NonNull final E event) throws T {
     for(final Subscriber<E> subscriber : this.registry.subscribers(event)) {
       try {
         subscriber.invoke(event);

@@ -23,18 +23,17 @@
  */
 package net.kyori.event;
 
-import javax.annotation.Nonnull;
+import net.kyori.blizzard.NonNull;
 
 public class EventException extends Exception {
+  @NonNull private final Object event;
 
-  @Nonnull private final Object event;
-
-  public EventException(@Nonnull final Object event, final Throwable cause) {
+  public EventException(@NonNull final Object event, final Throwable cause) {
     super(cause);
     this.event = event;
   }
 
-  @Nonnull
+  @NonNull
   public Object event() {
     return this.event;
   }

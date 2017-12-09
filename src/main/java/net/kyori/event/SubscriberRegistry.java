@@ -29,6 +29,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
+import net.kyori.blizzard.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 /**
  * A subscriber registry.
  *
@@ -47,7 +46,6 @@ import javax.annotation.Nonnull;
  * @param <L> the listener type
  */
 final class SubscriberRegistry<E, L> {
-
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberRegistry.class);
   private static final LoadingCache<Class<?>, Set<Class<?>>> CLASS_HIERARCHY = Caffeine.newBuilder()
     .weakKeys()
@@ -70,12 +68,12 @@ final class SubscriberRegistry<E, L> {
       return subscribers;
     });
 
-  SubscriberRegistry(@Nonnull final EventExecutor.Factory<E, L> factory, @Nonnull final SubscriberFilter<L> filter) {
+  SubscriberRegistry(@NonNull final EventExecutor.Factory<E, L> factory, @NonNull final SubscriberFilter<L> filter) {
     this.factory = factory;
     this.filter = filter;
   }
 
-  void register(@Nonnull final L listener) {
+  void register(@NonNull final L listener) {
     final List<Subscriber<E>> subscribers = new ArrayList<>();
     for(final Method method : listener.getClass().getDeclaredMethods()) {
       final Subscribe definition = method.getAnnotation(Subscribe.class);
@@ -100,7 +98,7 @@ final class SubscriberRegistry<E, L> {
     }
   }
 
-  void unregister(@Nonnull final L listener) {
+  void unregister(@NonNull final L listener) {
     synchronized(this.lock) {
       boolean dirty = false;
       final Iterator<Subscriber<E>> it = this.subscribers.values().iterator();
@@ -117,23 +115,22 @@ final class SubscriberRegistry<E, L> {
     }
   }
 
-  @Nonnull
-  List<Subscriber<E>> subscribers(@Nonnull final Object event) {
+  @NonNull
+  List<Subscriber<E>> subscribers(@NonNull final Object event) {
     return this.cache.get(event.getClass());
   }
 
   static final class EventProcessorImpl<E, L> implements EventProcessor<E> {
+    @NonNull private final EventExecutor<E, L> executor;
+    @NonNull private final L listener;
 
-    @Nonnull private final EventExecutor<E, L> executor;
-    @Nonnull private final L listener;
-
-    EventProcessorImpl(@Nonnull final EventExecutor<E, L> executor, @Nonnull final L listener) {
+    EventProcessorImpl(@NonNull final EventExecutor<E, L> executor, @NonNull final L listener) {
       this.executor = executor;
       this.listener = listener;
     }
 
     @Override
-    public void invoke(@Nonnull final E event) throws Throwable {
+    public void invoke(@NonNull final E event) throws Throwable {
       this.executor.execute(this.listener, event);
     }
 

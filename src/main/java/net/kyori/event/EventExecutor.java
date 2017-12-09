@@ -23,9 +23,9 @@
  */
 package net.kyori.event;
 
-import java.lang.reflect.Method;
+import net.kyori.blizzard.NonNull;
 
-import javax.annotation.Nonnull;
+import java.lang.reflect.Method;
 
 /**
  * An event executor.
@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
  */
 @FunctionalInterface
 public interface EventExecutor<E, L> {
-
   /**
    * Executes an event.
    *
@@ -43,7 +42,7 @@ public interface EventExecutor<E, L> {
    * @param event the event
    * @throws Throwable if an exception occurred
    */
-  void execute(@Nonnull final L listener, @Nonnull final E event) throws Throwable;
+  void execute(@NonNull final L listener, @NonNull final E event) throws Throwable;
 
   /**
    * An event executor factory.
@@ -53,7 +52,6 @@ public interface EventExecutor<E, L> {
    */
   @FunctionalInterface
   interface Factory<E, L> {
-
     /**
      * Creates an event executor.
      *
@@ -62,7 +60,7 @@ public interface EventExecutor<E, L> {
      * @return an event executor
      * @throws Exception if an exception occurred while creating an executor
      */
-    @Nonnull
-    EventExecutor<E, L> create(@Nonnull final Object object, @Nonnull final Method method) throws Exception;
+    @NonNull
+    EventExecutor<E, L> create(@NonNull final Object object, @NonNull final Method method) throws Exception;
   }
 }

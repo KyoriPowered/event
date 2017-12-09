@@ -23,9 +23,9 @@
  */
 package net.kyori.event;
 
-import java.lang.reflect.Method;
+import net.kyori.blizzard.NonNull;
 
-import javax.annotation.Nonnull;
+import java.lang.reflect.Method;
 
 /**
  * A subscriber filter.
@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
  */
 @FunctionalInterface
 public interface SubscriberFilter<L> {
-
   /**
    * A subscriber filter which always returns {@code true}.
    */
@@ -47,5 +46,5 @@ public interface SubscriberFilter<L> {
    * @param method the method
    * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
    */
-  boolean test(@Nonnull final L listener, @Nonnull final Method method);
+  boolean test(@NonNull final L listener, @NonNull final Method method);
 }
