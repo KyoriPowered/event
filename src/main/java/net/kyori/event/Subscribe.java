@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 package net.kyori.event;
 
+import net.kyori.blizzard.NonNull;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,4 +40,19 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
+  /**
+   * Gets the priority.
+   *
+   * @return the priority
+   */
+  @NonNull
+  Priority priority() default Priority.NORMAL;
+
+  enum Priority {
+    LOWEST,
+    LOW,
+    NORMAL,
+    HIGH,
+    HIGHEST;
+  }
 }

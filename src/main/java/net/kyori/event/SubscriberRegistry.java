@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import net.kyori.blizzard.NonNull;
+import net.kyori.blizzard.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ final class SubscriberRegistry<E, L> {
   private final EventExecutor.Factory<E, L> factory;
   private final SubscriberFilter<L> filter;
   private final Multimap<Class<?>, Subscriber<E>> subscribers = HashMultimap.create();
-  private final LoadingCache<Class<?>, List<Subscriber<E>>> cache = Caffeine.newBuilder()
+  private final LoadingCache<Class<?>, Subscribers<E>> cache = Caffeine.newBuilder()
     .initialCapacity(85)
     .build(eventClass -> {
       final List<Subscriber<E>> subscribers = new ArrayList<>();
@@ -65,7 +66,7 @@ final class SubscriberRegistry<E, L> {
           subscribers.addAll(SubscriberRegistry.this.subscribers.get(type));
         }
       }
-      return subscribers;
+      return new Subscribers<>(subscribers);
     });
 
   SubscriberRegistry(@NonNull final EventExecutor.Factory<E, L> factory, @NonNull final SubscriberFilter<L> filter) {
@@ -87,7 +88,7 @@ final class SubscriberRegistry<E, L> {
         LOGGER.error("Encountered an exception while creating an event executor for method '" + method + '\'', e);
         continue;
       }
-      subscribers.add(new Subscriber<>(method, new EventProcessorImpl<>(executor, listener), method.isAnnotationPresent(IncludeCancelled.class)));
+      subscribers.add(new Subscriber<>(method, new EventProcessorImpl<>(executor, listener), definition.priority(), method.isAnnotationPresent(IncludeCancelled.class)));
     }
     if(subscribers.isEmpty()) {
       return;
@@ -116,8 +117,8 @@ final class SubscriberRegistry<E, L> {
   }
 
   @NonNull
-  List<Subscriber<E>> subscribers(@NonNull final Object event) {
-    return this.cache.get(event.getClass());
+  List<Subscriber<E>> subscribers(@NonNull final Object event, @Nullable final Subscribe.Priority priority) {
+    return this.cache.get(event.getClass()).get(priority);
   }
 
   static final class EventProcessorImpl<E, L> implements EventProcessor<E> {

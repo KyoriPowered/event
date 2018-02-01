@@ -24,17 +24,34 @@
 package net.kyori.event;
 
 import net.kyori.blizzard.NonNull;
+import net.kyori.blizzard.Nullable;
 
-public class EventException extends Exception {
-  @NonNull private final Object event;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
-  public EventException(@NonNull final Object event, final Throwable cause) {
-    super(cause);
-    this.event = event;
+final class Subscribers<E> {
+  private final List<Subscriber<E>> all;
+  private final Map<Subscribe.Priority, List<Subscriber<E>>> priorities = new EnumMap<>(Subscribe.Priority.class);
+
+  Subscribers(@NonNull final List<Subscriber<E>> subscribers) {
+    this.all = subscribers;
+
+    for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
+      this.priorities.put(priority, new ArrayList<>());
+    }
+
+    for(final Subscriber<E> subscriber : subscribers) {
+      this.priorities.get(subscriber.priority).add(subscriber);
+    }
   }
 
   @NonNull
-  public Object event() {
-    return this.event;
+  List<Subscriber<E>> get(@Nullable final Subscribe.Priority priority) {
+    if(priority == null) {
+      return this.all;
+    }
+    return this.priorities.get(priority);
   }
 }

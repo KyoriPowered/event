@@ -38,7 +38,7 @@ dependencies {
   compile 'com.google.guava:guava:21.0'
   compile 'net.kyori:blizzard:1.0.4-JDK8144185'
   compile 'net.kyori:lunar:1.0.0-SNAPSHOT'
-  compile 'org.ow2.asm:asm-debug-all:5.1'
+  compile 'org.ow2.asm:asm-debug-all:6.0_BETA'
   compile 'org.slf4j:slf4j-api:1.7.25'
   testCompile 'junit:junit:4.12'
 }

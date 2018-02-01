@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,16 +38,18 @@ import java.util.Objects;
  *
  * @param <E> the event type
  */
-final class Subscriber<E> implements EventProcessor<E> {
+final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E> {
   @NonNull final Class<?> event;
   @Nullable private final Type generic;
   @NonNull final EventProcessor<E> processor;
+  final Subscribe.Priority priority;
   private final boolean includeCancelled;
 
-  Subscriber(@NonNull final Method method, @NonNull final EventProcessor<E> processor, final boolean includeCancelled) {
+  Subscriber(@NonNull final Method method, @NonNull final EventProcessor<E> processor, @NonNull final Subscribe.Priority priority, final boolean includeCancelled) {
     this.event = method.getParameterTypes()[0];
     this.generic = Reified.class.isAssignableFrom(this.event) ? genericType(method.getGenericParameterTypes()[0]) : null;
     this.processor = processor;
+    this.priority = priority;
     this.includeCancelled = includeCancelled;
   }
 
@@ -72,8 +74,13 @@ final class Subscriber<E> implements EventProcessor<E> {
   }
 
   @Override
+  public int compareTo(final Subscriber<?> that) {
+    return this.priority.compareTo(that.priority);
+  }
+
+  @Override
   public int hashCode() {
-    return Objects.hash(this.event, this.generic, this.processor, this.includeCancelled);
+    return Objects.hash(this.event, this.generic, this.processor, this.priority, this.includeCancelled);
   }
 
   @Override
@@ -84,6 +91,7 @@ final class Subscriber<E> implements EventProcessor<E> {
     return Objects.equals(this.event, that.event)
       && Objects.equals(this.generic, that.generic)
       && Objects.equals(this.processor, that.processor)
+      && Objects.equals(this.priority, that.priority)
       && Objects.equals(this.includeCancelled, that.includeCancelled);
   }
 
@@ -93,6 +101,7 @@ final class Subscriber<E> implements EventProcessor<E> {
       .add("event", this.event)
       .add("generic", this.generic)
       .add("processor", this.processor)
+      .add("priority", this.priority)
       .add("includeCancelled", this.includeCancelled)
       .toString();
   }

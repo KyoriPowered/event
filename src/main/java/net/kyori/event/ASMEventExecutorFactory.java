@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,7 +113,6 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
 
   // A class loader with a method exposed to define a class.
   private static final class DefiningClassLoader extends ClassLoader {
-
     private DefiningClassLoader(final ClassLoader parent) {
       super(parent);
     }

@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,16 +24,14 @@
 package net.kyori.event;
 
 import com.google.common.reflect.TypeToken;
+import net.kyori.blizzard.NonNull;
 import net.kyori.lunar.reflect.Reified;
 import org.junit.Test;
-
-import javax.annotation.Nonnull;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class EventBusTestWithType {
-
   private final EventBus<Event, Listener> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
@@ -67,14 +65,13 @@ public class EventBusTestWithType {
   public interface Event {}
   public class MyEvent implements Event {}
   public class GenericEvent<T> implements Event, Reified<T> {
-
     private final TypeToken<T> type;
 
     GenericEvent(final Class<T> type) {
       this.type = TypeToken.of(type);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public TypeToken<T> type() {
       return this.type;
@@ -83,7 +80,6 @@ public class EventBusTestWithType {
   public interface Listener {}
 
   public class MyListener implements Listener {
-
     final boolean[] result = new boolean[3];
 
     void reset() {

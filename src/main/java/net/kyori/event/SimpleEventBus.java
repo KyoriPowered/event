@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017 KyoriPowered
+ * Copyright (c) 2017-2018 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,13 +51,15 @@ public class SimpleEventBus<E, L> implements EventBus<E, L> {
 
   @Override
   public <T extends Throwable> void post(@NonNull final E event) throws T {
-    for(final Subscriber<E> subscriber : this.registry.subscribers(event)) {
-      try {
-        subscriber.invoke(event);
-      } catch(final EventException e) {
-        throw (T) e;
-      } catch(final Throwable t) {
-        throw (T) new EventException(event, t);
+    for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
+      for(final Subscriber<E> subscriber : this.registry.subscribers(event, priority)) {
+        try {
+          subscriber.invoke(event);
+        } catch(final EventException e) {
+          throw (T) e;
+        } catch(final Throwable t) {
+          throw (T) new EventException(event, t);
+        }
       }
     }
   }

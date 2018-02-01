@@ -31,15 +31,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
-public class FilteredEventBusTest {
-  private final AtomicInteger result = new AtomicInteger();
-  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
+public class PriorityEventBusTest {
+  private final AtomicInteger lowResult = new AtomicInteger();
+  private final AtomicInteger normalResult = new AtomicInteger();
+  private final AtomicInteger highResult = new AtomicInteger();
+  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
+  private final EventBus<Object, Object> filteredBus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(FilteredEventBusTest.SomeFilter.class));
 
   @Test
   public void testListener() {
     this.bus.register(new TestListener());
+    this.filteredBus.register(new TestListener());
     this.bus.post(new TestEvent());
-    assertEquals(1, this.result.get());
+    this.filteredBus.post(new TestEvent());
+    assertEquals(1, this.lowResult.get());
+    assertEquals(2, this.normalResult.get());
+    assertEquals(2, this.highResult.get());
   }
 
   @Retention(RetentionPolicy.RUNTIME)
@@ -47,15 +54,31 @@ public class FilteredEventBusTest {
   public final class TestEvent {}
 
   public class TestListener {
-    @Subscribe
-    public void withoutFilter(final TestEvent event) {
-      FilteredEventBusTest.this.result.getAndIncrement();
+    @Subscribe(priority = Subscribe.Priority.LOW)
+    public void low(final TestEvent event) {
+      PriorityEventBusTest.this.lowResult.getAndIncrement();
+    }
+
+    @Subscribe(priority = Subscribe.Priority.NORMAL)
+    public void normal(final TestEvent event) {
+      PriorityEventBusTest.this.normalResult.getAndIncrement();
     }
 
     @SomeFilter
-    @Subscribe
-    public void withFilter(final TestEvent event) {
-      FilteredEventBusTest.this.result.getAndIncrement();
+    @Subscribe(priority = Subscribe.Priority.NORMAL)
+    public void filteredNormal(final TestEvent event) {
+      PriorityEventBusTest.this.normalResult.getAndIncrement();
+    }
+
+    @Subscribe(priority = Subscribe.Priority.HIGH)
+    public void high(final TestEvent event) {
+      PriorityEventBusTest.this.highResult.getAndIncrement();
+    }
+
+    @SomeFilter
+    @Subscribe(priority = Subscribe.Priority.HIGH)
+    public void filteredHigh(final TestEvent event) {
+      PriorityEventBusTest.this.highResult.getAndIncrement();
     }
   }
 }
