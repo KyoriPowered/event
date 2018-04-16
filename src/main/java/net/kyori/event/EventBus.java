@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * An event bus.
@@ -37,14 +37,14 @@ public interface EventBus<E, L> {
    *
    * @param listener the listener
    */
-  void register(@NonNull final L listener);
+  void register(final @NonNull L listener);
 
   /**
    * Unregisters all subscriber methods on a registered {@code listener}.
    *
    * @param listener the listener
    */
-  void unregister(@NonNull final L listener);
+  void unregister(final @NonNull L listener);
 
   /**
    * Posts an event to all registered subscribers.
@@ -53,5 +53,5 @@ public interface EventBus<E, L> {
    * @param <T> the throwable type
    * @throws T if an exception was encountered
    */
-  <T extends Throwable> void post(@NonNull final E event) throws T;
+  <T extends Throwable> void post(final @NonNull E event) throws T;
 }

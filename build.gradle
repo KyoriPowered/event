@@ -36,11 +36,12 @@ dependencies {
   compile 'com.github.ben-manes.caffeine:caffeine:2.5.2'
   compile 'com.google.errorprone:error_prone_annotations:2.0.15'
   compile 'com.google.guava:guava:21.0'
-  compile 'net.kyori:blizzard:1.0.4-JDK8144185'
-  compile 'net.kyori:lunar:1.0.4'
+  compile 'net.kyori:lunar:1.0.5'
+  compile 'org.checkerframework:checker-qual:2.4.0'
   compile 'org.ow2.asm:asm-debug-all:6.0_BETA'
   compile 'org.slf4j:slf4j-api:1.7.25'
-  testCompile 'junit:junit:4.12'
+  testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.3'
+  testCompile 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
 }
 
 task javadocJar(type: Jar) {

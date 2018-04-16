@@ -23,17 +23,17 @@
  */
 package net.kyori.event;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class EventBusTest {
+class EventBusTest {
   private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
-  public void testListener() {
+  void testListener() {
     final TestListener listener = new TestListener();
     this.bus.register(listener);
     final TestEvent event = new TestEvent();
@@ -55,7 +55,6 @@ public class EventBusTest {
   }
 
   public final class TestEvent extends Cancellable.Impl {
-
     final AtomicInteger count = new AtomicInteger(0);
 
     @Override
@@ -66,7 +65,6 @@ public class EventBusTest {
   }
 
   public class TestListener {
-
     @Subscribe
     public void event(final TestEvent event) {
       event.count.incrementAndGet();
@@ -79,7 +77,6 @@ public class EventBusTest {
   }
 
   public class TestListenerWithCancelled {
-
     @IncludeCancelled
     @Subscribe
     public void cancelledIncluded(final TestEvent event) {

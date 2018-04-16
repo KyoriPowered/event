@@ -29,8 +29,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
-import net.kyori.blizzard.NonNull;
-import net.kyori.blizzard.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,12 +69,12 @@ final class SubscriberRegistry<E, L> {
       return new Subscribers<>(subscribers);
     });
 
-  SubscriberRegistry(@NonNull final EventExecutor.Factory<E, L> factory, @NonNull final SubscriberFilter<L> filter) {
+  SubscriberRegistry(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull SubscriberFilter<L> filter) {
     this.factory = factory;
     this.filter = filter;
   }
 
-  void register(@NonNull final L listener) {
+  void register(final @NonNull L listener) {
     final List<Subscriber<E>> subscribers = new ArrayList<>();
     for(final Method method : listener.getClass().getDeclaredMethods()) {
       final Subscribe definition = method.getAnnotation(Subscribe.class);
@@ -99,7 +99,7 @@ final class SubscriberRegistry<E, L> {
     }
   }
 
-  void unregister(@NonNull final L listener) {
+  void unregister(final @NonNull L listener) {
     synchronized(this.lock) {
       boolean dirty = false;
       final Iterator<Subscriber<E>> it = this.subscribers.values().iterator();
@@ -116,8 +116,7 @@ final class SubscriberRegistry<E, L> {
     }
   }
 
-  @NonNull
-  List<Subscriber<E>> subscribers(@NonNull final Object event, @Nullable final Subscribe.Priority priority) {
+  @NonNull List<Subscriber<E>> subscribers(final @NonNull Object event, final Subscribe.@Nullable Priority priority) {
     return this.cache.get(event.getClass()).get(priority);
   }
 
@@ -125,13 +124,13 @@ final class SubscriberRegistry<E, L> {
     @NonNull private final EventExecutor<E, L> executor;
     @NonNull private final L listener;
 
-    EventProcessorImpl(@NonNull final EventExecutor<E, L> executor, @NonNull final L listener) {
+    EventProcessorImpl(final @NonNull EventExecutor<E, L> executor, final @NonNull L listener) {
       this.executor = executor;
       this.listener = listener;
     }
 
     @Override
-    public void invoke(@NonNull final E event) throws Throwable {
+    public void invoke(final @NonNull E event) throws Throwable {
       this.executor.execute(this.listener, event);
     }
 

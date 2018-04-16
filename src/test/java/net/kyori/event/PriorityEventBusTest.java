@@ -23,15 +23,15 @@
  */
 package net.kyori.event;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PriorityEventBusTest {
+class PriorityEventBusTest {
   private final AtomicInteger lowResult = new AtomicInteger();
   private final AtomicInteger normalResult = new AtomicInteger();
   private final AtomicInteger highResult = new AtomicInteger();
@@ -39,7 +39,7 @@ public class PriorityEventBusTest {
   private final EventBus<Object, Object> filteredBus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(FilteredEventBusTest.SomeFilter.class));
 
   @Test
-  public void testListener() {
+  void testListener() {
     this.bus.register(new TestListener());
     this.filteredBus.register(new TestListener());
     this.bus.post(new TestEvent());
@@ -50,7 +50,7 @@ public class PriorityEventBusTest {
   }
 
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface SomeFilter {}
+  @interface SomeFilter {}
   public final class TestEvent {}
 
   public class TestListener {

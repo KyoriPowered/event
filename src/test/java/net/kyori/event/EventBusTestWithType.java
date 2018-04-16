@@ -24,18 +24,18 @@
 package net.kyori.event;
 
 import com.google.common.reflect.TypeToken;
-import net.kyori.blizzard.NonNull;
 import net.kyori.lunar.reflect.Reified;
-import org.junit.Test;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EventBusTestWithType {
+class EventBusTestWithType {
   private final EventBus<Event, Listener> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
-  public void testListener() {
+  void testListener() {
     final MyListener listener = new MyListener();
     this.bus.register(listener);
     // first post should set result[0] to true
@@ -62,7 +62,7 @@ public class EventBusTestWithType {
 
   private interface Foo {}
   private interface Bar {}
-  public interface Event {}
+  interface Event {}
   public class MyEvent implements Event {}
   public class GenericEvent<T> implements Event, Reified<T> {
     private final TypeToken<T> type;
@@ -71,13 +71,12 @@ public class EventBusTestWithType {
       this.type = TypeToken.of(type);
     }
 
-    @NonNull
     @Override
-    public TypeToken<T> type() {
+    public @NonNull TypeToken<T> type() {
       return this.type;
     }
   }
-  public interface Listener {}
+  interface Listener {}
 
   public class MyListener implements Listener {
     final boolean[] result = new boolean[3];

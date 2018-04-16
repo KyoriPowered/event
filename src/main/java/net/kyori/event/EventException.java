@@ -23,18 +23,17 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class EventException extends Exception {
-  @NonNull private final Object event;
+  private final @NonNull Object event;
 
-  public EventException(@NonNull final Object event, final Throwable cause) {
+  public EventException(final @NonNull Object event, final Throwable cause) {
     super(cause);
     this.event = event;
   }
 
-  @NonNull
-  public Object event() {
+  public @NonNull Object event() {
     return this.event;
   }
 }

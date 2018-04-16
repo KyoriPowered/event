@@ -25,7 +25,7 @@ package net.kyori.event;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -99,9 +99,8 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
     return String.format("%s.%s.%s-%s-%s-%d", PACKAGE, this.session, listener.getSimpleName(), method.getName(), parameter.getSimpleName(), this.id.incrementAndGet());
   }
 
-  @NonNull
   @Override
-  public EventExecutor<E, L> create(@NonNull final Object object, @NonNull final Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+  public @NonNull EventExecutor<E, L> create(final @NonNull Object object, final @NonNull Method method) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
     if(!Modifier.isPublic(object.getClass().getModifiers())) {
       throw new IllegalArgumentException(String.format("Listener class '%s' must be public", object.getClass().getName()));
     }

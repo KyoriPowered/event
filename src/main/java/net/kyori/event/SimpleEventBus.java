@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * A simple implementation of an event bus.
@@ -31,26 +31,26 @@ import net.kyori.blizzard.NonNull;
 public class SimpleEventBus<E, L> implements EventBus<E, L> {
   private final SubscriberRegistry<E, L> registry;
 
-  public SimpleEventBus(@NonNull final EventExecutor.Factory<E, L> factory) {
+  public SimpleEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
     this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
   }
 
-  public SimpleEventBus(@NonNull final EventExecutor.Factory<E, L> factory, @NonNull final SubscriberFilter<L> filter) {
+  public SimpleEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull SubscriberFilter<L> filter) {
     this.registry = new SubscriberRegistry<>(factory, filter);
   }
 
   @Override
-  public void register(@NonNull final L listener) {
+  public void register(final @NonNull L listener) {
     this.registry.register(listener);
   }
 
   @Override
-  public void unregister(@NonNull final L listener) {
+  public void unregister(final @NonNull L listener) {
     this.registry.unregister(listener);
   }
 
   @Override
-  public <T extends Throwable> void post(@NonNull final E event) throws T {
+  public <T extends Throwable> void post(final @NonNull E event) throws T {
     for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
       for(final Subscriber<E> subscriber : this.registry.subscribers(event, priority)) {
         try {

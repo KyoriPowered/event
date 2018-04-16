@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.lang.reflect.Method;
 
@@ -46,5 +46,5 @@ public interface SubscriberFilter<L> {
    * @param method the method
    * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
    */
-  boolean test(@NonNull final L listener, @NonNull final Method method);
+  boolean test(final @NonNull L listener, final @NonNull Method method);
 }

@@ -24,9 +24,9 @@
 package net.kyori.event;
 
 import com.google.common.base.MoreObjects;
-import net.kyori.blizzard.NonNull;
-import net.kyori.blizzard.Nullable;
 import net.kyori.lunar.reflect.Reified;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -39,13 +39,13 @@ import java.util.Objects;
  * @param <E> the event type
  */
 final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E> {
-  @NonNull final Class<?> event;
-  @Nullable private final Type generic;
-  @NonNull final EventProcessor<E> processor;
+  final @NonNull Class<?> event;
+  private final @Nullable Type generic;
+  final @NonNull EventProcessor<E> processor;
   final Subscribe.Priority priority;
   private final boolean includeCancelled;
 
-  Subscriber(@NonNull final Method method, @NonNull final EventProcessor<E> processor, @NonNull final Subscribe.Priority priority, final boolean includeCancelled) {
+  Subscriber(final @NonNull Method method, final @NonNull EventProcessor<E> processor, final Subscribe.@NonNull Priority priority, final boolean includeCancelled) {
     this.event = method.getParameterTypes()[0];
     this.generic = Reified.class.isAssignableFrom(this.event) ? genericType(method.getGenericParameterTypes()[0]) : null;
     this.processor = processor;
@@ -53,8 +53,7 @@ final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E
     this.includeCancelled = includeCancelled;
   }
 
-  @Nullable
-  private static Type genericType(final Type type) {
+  private static @Nullable Type genericType(final Type type) {
     if(type instanceof ParameterizedType) {
       return ((ParameterizedType) type).getActualTypeArguments()[0];
     }
@@ -62,7 +61,7 @@ final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E
   }
 
   @Override
-  public void invoke(@NonNull final E event) throws Throwable {
+  public void invoke(final @NonNull E event) throws Throwable {
     if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !this.includeCancelled)) {
       return;
     }

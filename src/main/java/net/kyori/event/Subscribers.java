@@ -23,8 +23,8 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
-import net.kyori.blizzard.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -35,7 +35,7 @@ final class Subscribers<E> {
   private final List<Subscriber<E>> all;
   private final Map<Subscribe.Priority, List<Subscriber<E>>> priorities = new EnumMap<>(Subscribe.Priority.class);
 
-  Subscribers(@NonNull final List<Subscriber<E>> subscribers) {
+  Subscribers(final @NonNull List<Subscriber<E>> subscribers) {
     this.all = subscribers;
 
     for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
@@ -47,8 +47,7 @@ final class Subscribers<E> {
     }
   }
 
-  @NonNull
-  List<Subscriber<E>> get(@Nullable final Subscribe.Priority priority) {
+  @NonNull List<Subscriber<E>> get(final Subscribe.@Nullable Priority priority) {
     if(priority == null) {
       return this.all;
     }

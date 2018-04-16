@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * An event processor.
@@ -32,5 +32,5 @@ import net.kyori.blizzard.NonNull;
  */
 @FunctionalInterface
 interface EventProcessor<E> {
-  void invoke(@NonNull final E event) throws Throwable;
+  void invoke(final @NonNull E event) throws Throwable;
 }

@@ -23,8 +23,6 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -45,7 +43,6 @@ public @interface Subscribe {
    *
    * @return the priority
    */
-  @NonNull
   Priority priority() default Priority.NORMAL;
 
   enum Priority {

@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import net.kyori.blizzard.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.lang.reflect.Method;
 
@@ -42,7 +42,7 @@ public interface EventExecutor<E, L> {
    * @param event the event
    * @throws Throwable if an exception occurred
    */
-  void execute(@NonNull final L listener, @NonNull final E event) throws Throwable;
+  void execute(final @NonNull L listener, final @NonNull E event) throws Throwable;
 
   /**
    * An event executor factory.
@@ -60,7 +60,6 @@ public interface EventExecutor<E, L> {
      * @return an event executor
      * @throws Exception if an exception occurred while creating an executor
      */
-    @NonNull
-    EventExecutor<E, L> create(@NonNull final Object object, @NonNull final Method method) throws Exception;
+    @NonNull EventExecutor<E, L> create(final @NonNull Object object, final @NonNull Method method) throws Exception;
   }
 }
