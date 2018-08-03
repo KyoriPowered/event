@@ -21,30 +21,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.base;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
- * A subscriber filter.
+ * A functional interface representing an object that can handle a given type of event.
  *
- * @param <L> the listener type
+ * @param <E> the event type
  */
 @FunctionalInterface
-public interface SubscriberFilter<L> {
-  /**
-   * A subscriber filter which always returns {@code true}.
-   */
-  SubscriberFilter<?> TRUE = (listener, method) -> true;
+public interface EventHandler<E> {
 
   /**
-   * Tests if a method should be registered as an event subscriber.
+   * Invokes this event handler.
    *
-   * @param listener the listener
-   * @param method the method
-   * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
+   * <p>Called by the event bus when a new event is "posted" to this handler.</p>
+   *
+   * @param event the event that was posted
+   * @throws Throwable any exception thrown during handling
    */
-  boolean test(final @NonNull L listener, final @NonNull Method method);
+  void invoke(final @NonNull E event) throws Throwable;
+
+  /**
+   * Gets the {@link PostOrder} this handler should be called at.
+   *
+   * @return the post order of this handler
+   */
+  default PostOrder postOrder() {
+    return PostOrder.NORMAL;
+  }
+
+  /**
+   * Gets if cancelled event should be posted to this handler.
+   *
+   * @return if cancelled events should be posted
+   */
+  default boolean postCancelledEvents() {
+    return true;
+  }
+
+  /**
+   * Gets the generic type of this handler, if it is known.
+   *
+   * @return the generic type of the handler
+   */
+  default @Nullable Type genericType() {
+    ParameterizedType thisType = (ParameterizedType) getClass().getGenericSuperclass();
+    return thisType.getActualTypeArguments()[0];
+  }
 }

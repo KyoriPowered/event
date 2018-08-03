@@ -23,6 +23,11 @@
  */
 package net.kyori.event;
 
+import net.kyori.event.base.PostOrder;
+import net.kyori.event.method.executor.ASMEventExecutorFactory;
+import net.kyori.event.method.MethodEventBus;
+import net.kyori.event.method.SimpleMethodEventBus;
+import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
@@ -31,12 +36,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PriorityEventBusTest {
-  private final AtomicInteger lowResult = new AtomicInteger();
+class OrderedEventBusTest {
+  private final AtomicInteger earlyResult = new AtomicInteger();
   private final AtomicInteger normalResult = new AtomicInteger();
-  private final AtomicInteger highResult = new AtomicInteger();
-  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
-  private final EventBus<Object, Object> filteredBus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(FilteredEventBusTest.SomeFilter.class));
+  private final AtomicInteger lateResult = new AtomicInteger();
+  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
+  private final MethodEventBus<Object, Object> filteredBus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(FilteredEventBusTest.SomeFilter.class));
 
   @Test
   void testListener() {
@@ -44,9 +49,9 @@ class PriorityEventBusTest {
     this.filteredBus.register(new TestListener());
     this.bus.post(new TestEvent());
     this.filteredBus.post(new TestEvent());
-    assertEquals(1, this.lowResult.get());
+    assertEquals(1, this.earlyResult.get());
     assertEquals(2, this.normalResult.get());
-    assertEquals(2, this.highResult.get());
+    assertEquals(2, this.lateResult.get());
   }
 
   @Retention(RetentionPolicy.RUNTIME)
@@ -54,31 +59,31 @@ class PriorityEventBusTest {
   public final class TestEvent {}
 
   public class TestListener {
-    @Subscribe(priority = Subscribe.Priority.LOW)
-    public void low(final TestEvent event) {
-      PriorityEventBusTest.this.lowResult.getAndIncrement();
+    @Subscribe(postOrder = PostOrder.EARLY)
+    public void early(final TestEvent event) {
+      OrderedEventBusTest.this.earlyResult.getAndIncrement();
     }
 
-    @Subscribe(priority = Subscribe.Priority.NORMAL)
+    @Subscribe(postOrder = PostOrder.NORMAL)
     public void normal(final TestEvent event) {
-      PriorityEventBusTest.this.normalResult.getAndIncrement();
+      OrderedEventBusTest.this.normalResult.getAndIncrement();
     }
 
     @SomeFilter
-    @Subscribe(priority = Subscribe.Priority.NORMAL)
+    @Subscribe(postOrder = PostOrder.NORMAL)
     public void filteredNormal(final TestEvent event) {
-      PriorityEventBusTest.this.normalResult.getAndIncrement();
+      OrderedEventBusTest.this.normalResult.getAndIncrement();
     }
 
-    @Subscribe(priority = Subscribe.Priority.HIGH)
-    public void high(final TestEvent event) {
-      PriorityEventBusTest.this.highResult.getAndIncrement();
+    @Subscribe(postOrder = PostOrder.LATE)
+    public void late(final TestEvent event) {
+      OrderedEventBusTest.this.lateResult.getAndIncrement();
     }
 
     @SomeFilter
-    @Subscribe(priority = Subscribe.Priority.HIGH)
-    public void filteredHigh(final TestEvent event) {
-      PriorityEventBusTest.this.highResult.getAndIncrement();
+    @Subscribe(postOrder = PostOrder.LATE)
+    public void filteredLate(final TestEvent event) {
+      OrderedEventBusTest.this.lateResult.getAndIncrement();
     }
   }
 }

@@ -24,6 +24,10 @@
 package net.kyori.event;
 
 import com.google.common.reflect.TypeToken;
+import net.kyori.event.method.executor.ASMEventExecutorFactory;
+import net.kyori.event.method.MethodEventBus;
+import net.kyori.event.method.SimpleMethodEventBus;
+import net.kyori.event.method.annotation.Subscribe;
 import net.kyori.lunar.reflect.Reified;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
@@ -32,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EventBusTestWithType {
-  private final EventBus<Event, Listener> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
+  private final MethodEventBus<Event, Listener> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
   void testListener() {

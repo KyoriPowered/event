@@ -21,46 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.lang.reflect.Method;
+
 /**
- * A simple implementation of an event bus.
+ * A subscriber filter.
+ *
+ * @param <L> the listener type
  */
-public class SimpleEventBus<E, L> implements EventBus<E, L> {
-  private final SubscriberRegistry<E, L> registry;
+@FunctionalInterface
+public interface SubscriberFilter<L> {
+  /**
+   * A subscriber filter which always returns {@code true}.
+   */
+  SubscriberFilter<?> TRUE = (listener, method) -> true;
 
-  public SimpleEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
-  }
-
-  public SimpleEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull SubscriberFilter<L> filter) {
-    this.registry = new SubscriberRegistry<>(factory, filter);
-  }
-
-  @Override
-  public void register(final @NonNull L listener) {
-    this.registry.register(listener);
-  }
-
-  @Override
-  public void unregister(final @NonNull L listener) {
-    this.registry.unregister(listener);
-  }
-
-  @Override
-  public <T extends Throwable> void post(final @NonNull E event) throws T {
-    for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
-      for(final Subscriber<E> subscriber : this.registry.subscribers(event, priority)) {
-        try {
-          subscriber.invoke(event);
-        } catch(final EventException e) {
-          throw (T) e;
-        } catch(final Throwable t) {
-          throw (T) new EventException(event, t);
-        }
-      }
-    }
-  }
+  /**
+   * Tests if a method should be registered as an event subscriber.
+   *
+   * @param listener the listener
+   * @param method the method
+   * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
+   */
+  boolean test(final @NonNull L listener, final @NonNull Method method);
 }

@@ -21,16 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.base;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
- * An event processor.
+ * Base interface of the library, representing an object which accepts
+ * {@link #register(Class, EventHandler) registration} of {@link EventHandler}s,
+ * and supports {@link #post(Object) posting} events to them.
+ *
+ * <p>{@link EventHandler}s will receive all events which are applicable
+ * (can be casted) to their registered type.</p>
  *
  * @param <E> the event type
  */
-@FunctionalInterface
-interface EventProcessor<E> {
-  void invoke(final @NonNull E event) throws Throwable;
+public interface EventBus<E> {
+
+  /**
+   * Registers the given {@code handler} to receive events.
+   *
+   * @param clazz the registered type. the handler will only receive events
+   *              which can be casted to this type.
+   * @param handler the handler
+   */
+  <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventHandler<? super T> handler);
+
+  /**
+   * Unregisters a previously registered {@code listener}.
+   *
+   * @param handler the handler
+   */
+  void unregister(final @NonNull EventHandler<?> handler);
+
+  /**
+   * Posts an event to all registered handlers.
+   *
+   * @param event the event
+   * @return the post result of the operation
+   */
+  PostResult post(final @NonNull E event);
+
 }

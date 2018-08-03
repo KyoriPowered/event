@@ -21,35 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method.executor;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.lang.reflect.Method;
 
 /**
- * Marks a method as an event subscriber.
+ * Functional interface that can invoke a defined method on a listener object when an event is posted.
  *
- * @see IncludeCancelled
+ * @param <E> the event type
+ * @param <L> the listener type
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Subscribe {
-  /**
-   * Gets the priority.
-   *
-   * @return the priority
-   */
-  Priority priority() default Priority.NORMAL;
+@FunctionalInterface
+public interface EventExecutor<E, L> {
 
-  enum Priority {
-    LOWEST,
-    LOW,
-    NORMAL,
-    HIGH,
-    HIGHEST;
+  /**
+   * Invokes the appropriate method on the given listener to handle the event.
+   *
+   * @param listener the listener
+   * @param event the event
+   * @throws Throwable if an exception occurred
+   */
+  void invoke(final @NonNull L listener, final @NonNull E event) throws Throwable;
+
+  /**
+   * Factory for {@link EventExecutor}s.
+   *
+   * @param <E> the event type
+   * @param <L> the listener type
+   */
+  @FunctionalInterface
+  interface Factory<E, L> {
+    /**
+     * Creates an event executor.
+     *
+     * @param object the listener object
+     * @param method the method to call on the object
+     * @return an event executor
+     * @throws Exception if an exception occurred while creating an executor
+     */
+    @NonNull EventExecutor<E, L> create(final @NonNull Object object, final @NonNull Method method) throws Exception;
   }
 }

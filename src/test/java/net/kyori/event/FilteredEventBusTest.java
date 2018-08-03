@@ -23,6 +23,10 @@
  */
 package net.kyori.event;
 
+import net.kyori.event.method.executor.ASMEventExecutorFactory;
+import net.kyori.event.method.MethodEventBus;
+import net.kyori.event.method.SimpleMethodEventBus;
+import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
@@ -33,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FilteredEventBusTest {
   private final AtomicInteger result = new AtomicInteger();
-  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
+  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
 
   @Test
   void testListener() {
