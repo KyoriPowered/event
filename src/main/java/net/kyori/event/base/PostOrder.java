@@ -21,19 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package net.kyori.event.base;
 
 /**
- * Marks an event subscriber that should receive events even if they have been {@link Cancellable#cancelled() cancelled}.
+ * Represents the order, relative to other posts, that a given {@link EventHandler} should receive events.
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface IncludeCancelled {
+public enum PostOrder {
+
+  /**
+   * Marks that the handler should be called first, before all other handlers.
+   */
+  FIRST,
+
+  /**
+   * Marks that the handler should be called before {@link #NORMAL normal} handlers.
+   */
+  EARLY,
+
+  /**
+   * Marks that the handler should be called with no special priority.
+   */
+  NORMAL,
+
+  /**
+   * Marks that the handler should be called after {@link #NORMAL normal} handlers.
+   */
+  LATE,
+
+  /**
+   * Marks that the handler should be called last, after all other handlers.
+   */
+  LAST
+
 }

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method.executor;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -80,7 +80,7 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
         mv.visitEnd();
       }
       {
-        mv = cw.visitMethod(ACC_PUBLIC, "execute", EXECUTE_DESC, null, null);
+        mv = cw.visitMethod(ACC_PUBLIC, "invoke", EXECUTE_DESC, null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 1);
         mv.visitTypeInsn(CHECKCAST, listenerName);

@@ -21,36 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method.annotation;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import net.kyori.event.base.PostOrder;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-final class Subscribers<E> {
-  private final List<Subscriber<E>> all;
-  private final Map<Subscribe.Priority, List<Subscriber<E>>> priorities = new EnumMap<>(Subscribe.Priority.class);
+/**
+ * Marks a method as an event subscriber.
+ *
+ * @see IncludeCancelled
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Subscribe {
+  /**
+   * Gets the post order.
+   *
+   * @return the post order
+   */
+  PostOrder postOrder() default PostOrder.NORMAL;
 
-  Subscribers(final @NonNull List<Subscriber<E>> subscribers) {
-    this.all = subscribers;
-
-    for(final Subscribe.Priority priority : Subscribe.Priority.values()) {
-      this.priorities.put(priority, new ArrayList<>());
-    }
-
-    for(final Subscriber<E> subscriber : subscribers) {
-      this.priorities.get(subscriber.priority).add(subscriber);
-    }
-  }
-
-  @NonNull List<Subscriber<E>> get(final Subscribe.@Nullable Priority priority) {
-    if(priority == null) {
-      return this.all;
-    }
-    return this.priorities.get(priority);
-  }
 }

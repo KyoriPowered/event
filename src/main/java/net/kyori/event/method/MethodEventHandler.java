@@ -21,9 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method;
 
 import com.google.common.base.MoreObjects;
+import net.kyori.event.base.EventHandler;
+import net.kyori.event.base.PostOrder;
+import net.kyori.event.method.executor.EventExecutor;
 import net.kyori.lunar.reflect.Reified;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -34,21 +37,25 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 
 /**
- * A subscriber.
+ * Implements {@link EventHandler} for a given {@link Method}.
  *
  * @param <E> the event type
+ * @param <L> the listener type
  */
-final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E> {
-  final @NonNull Class<?> event;
+final class MethodEventHandler<E, L> implements EventHandler<E> {
+  private final Class<? extends E> event;
   private final @Nullable Type generic;
-  final @NonNull EventProcessor<E> processor;
-  final Subscribe.Priority priority;
+
+  private final EventExecutor<E, L> executor;
+  private final L listener;
+  private final PostOrder priority;
   private final boolean includeCancelled;
 
-  Subscriber(final @NonNull Method method, final @NonNull EventProcessor<E> processor, final Subscribe.@NonNull Priority priority, final boolean includeCancelled) {
-    this.event = method.getParameterTypes()[0];
+  MethodEventHandler(final Class<? extends E> eventClass, final @NonNull Method method, final @NonNull EventExecutor<E, L> executor, final @NonNull L listener, final @NonNull PostOrder priority, final boolean includeCancelled) {
+    this.event = eventClass;
     this.generic = Reified.class.isAssignableFrom(this.event) ? genericType(method.getGenericParameterTypes()[0]) : null;
-    this.processor = processor;
+    this.executor = executor;
+    this.listener = listener;
     this.priority = priority;
     this.includeCancelled = includeCancelled;
   }
@@ -60,36 +67,44 @@ final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E
     return null;
   }
 
-  @Override
-  public void invoke(final @NonNull E event) throws Throwable {
-    if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !this.includeCancelled)) {
-      return;
-    }
-    // safe to cast event to generic when this.generic is not null
-    if(this.generic != null && !((Reified<?>) event).type().getType().equals(this.generic)) {
-      return;
-    }
-    this.processor.invoke(event);
+  L getListener() {
+    return this.listener;
   }
 
   @Override
-  public int compareTo(final Subscriber<?> that) {
-    return this.priority.compareTo(that.priority);
+  public void invoke(final @NonNull E event) throws Throwable {
+    this.executor.invoke(this.listener, event);
+  }
+
+  @Override
+  public PostOrder postOrder() {
+    return this.priority;
+  }
+
+  @Override
+  public boolean postCancelledEvents() {
+    return this.includeCancelled;
+  }
+
+  @Override
+  public @Nullable Type genericType() {
+    return this.generic;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.event, this.generic, this.processor, this.priority, this.includeCancelled);
+    return Objects.hash(this.event, this.generic, this.executor, this.listener, this.priority, this.includeCancelled);
   }
 
   @Override
   public boolean equals(final Object other) {
     if(this == other) return true;
-    if(other == null || !(other instanceof Subscriber<?>)) return false;
-    final Subscriber<?> that = (Subscriber<?>) other;
+    if(other == null || !(other instanceof MethodEventHandler<?, ?>)) return false;
+    final MethodEventHandler<?, ?> that = (MethodEventHandler<?, ?>) other;
     return Objects.equals(this.event, that.event)
       && Objects.equals(this.generic, that.generic)
-      && Objects.equals(this.processor, that.processor)
+      && Objects.equals(this.executor, that.executor)
+      && Objects.equals(this.listener, that.listener)
       && Objects.equals(this.priority, that.priority)
       && Objects.equals(this.includeCancelled, that.includeCancelled);
   }
@@ -99,7 +114,8 @@ final class Subscriber<E> implements Comparable<Subscriber<?>>, EventProcessor<E
     return MoreObjects.toStringHelper(this)
       .add("event", this.event)
       .add("generic", this.generic)
-      .add("processor", this.processor)
+      .add("executor", this.executor)
+      .add("listener", this.listener)
       .add("priority", this.priority)
       .add("includeCancelled", this.includeCancelled)
       .toString();

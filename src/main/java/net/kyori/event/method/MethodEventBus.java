@@ -21,45 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method;
 
+import net.kyori.event.base.EventBus;
+import net.kyori.event.method.annotation.Subscribe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Method;
-
 /**
- * An event executor.
+ * Extension of {@link EventBus} which supports defining event handlers as methods in a class.
  *
  * @param <E> the event type
  * @param <L> the listener type
  */
-@FunctionalInterface
-public interface EventExecutor<E, L> {
-  /**
-   * Executes an event.
-   *
-   * @param listener the listener
-   * @param event the event
-   * @throws Throwable if an exception occurred
-   */
-  void execute(final @NonNull L listener, final @NonNull E event) throws Throwable;
+public interface MethodEventBus<E, L> extends EventBus<E> {
 
   /**
-   * An event executor factory.
+   * Registers all methods annotated with {@link Subscribe} on {@code listener} to receive events.
    *
-   * @param <E> the event type
-   * @param <L> the listener type
+   * @param listener the listener
    */
-  @FunctionalInterface
-  interface Factory<E, L> {
-    /**
-     * Creates an event executor.
-     *
-     * @param object the object
-     * @param method the method
-     * @return an event executor
-     * @throws Exception if an exception occurred while creating an executor
-     */
-    @NonNull EventExecutor<E, L> create(final @NonNull Object object, final @NonNull Method method) throws Exception;
-  }
+  void register(final @NonNull L listener);
+
+  /**
+   * Unregisters all subscriber methods on a registered {@code listener}.
+   *
+   * @param listener the listener
+   */
+  void unregister(final @NonNull L listener);
+
 }
