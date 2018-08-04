@@ -1,5 +1,10 @@
 /.gradle/
 /.idea/
-/build/
-/out/
+/api/build/
+/api/out/
+/method/build/
+/method/out/
+/method-asm/build/
+/method-asm/out/
+/run/
 /*.iml

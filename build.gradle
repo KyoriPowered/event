@@ -1,118 +1,113 @@
-plugins {
-  id 'java'
-  id 'maven'
-  id 'signing'
-  id 'net.minecrell.licenser' version '0.3'
-}
+buildscript {
+  repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
+    }
+  }
 
-group 'net.kyori'
-version '2.0.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-tasks.withType(JavaCompile) {
-  options.compilerArgs += ['-Xlint:all', '-Xlint:-path', '-parameters']
-  options.deprecation = true
-  options.encoding = 'UTF-8'
-}
-
-license {
-  header project.file('header.txt')
-  include '**/*.java'
-  newLine false
-}
-
-repositories {
-  mavenLocal()
-  mavenCentral()
-  maven {
-    name 'sonatype-oss'
-    url 'https://oss.sonatype.org/content/groups/public/'
+  dependencies {
+    classpath 'gradle.plugin.net.minecrell:licenser:0.4.1'
   }
 }
 
-dependencies {
-  compile 'com.github.ben-manes.caffeine:caffeine:2.5.2'
-  compile 'com.google.errorprone:error_prone_annotations:2.0.15'
-  compile 'com.google.guava:guava:21.0'
-  compile 'net.kyori:lunar:1.0.5'
-  compile 'org.checkerframework:checker-qual:2.4.0'
-  compile 'org.ow2.asm:asm-debug-all:6.0_BETA'
-  compile 'org.slf4j:slf4j-api:1.7.25'
-  testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.3'
-  testCompile 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
-}
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'maven'
+  apply plugin: 'signing'
+  apply plugin: 'net.minecrell.licenser'
 
-task javadocJar(type: Jar) {
-  classifier 'javadoc'
-  from javadoc
-}
+  group 'net.kyori'
+  version '2.0.0-SNAPSHOT'
 
-task sourcesJar(type: Jar) {
-  classifier 'sources'
-  from sourceSets.main.allSource
-}
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
 
-artifacts {
-  archives javadocJar
-  archives sourcesJar
-}
+  tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-path', '-parameters']
+    options.deprecation = true
+    options.encoding = 'UTF-8'
+  }
 
-signing {
-  required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') && project.hasProperty('signing.keyId') }
-  sign configurations.archives
-}
+  license {
+    header rootProject.file('header.txt')
+    include '**/*.java'
+    newLine false
+  }
 
-jar {
-  manifest.attributes(
-    'Automatic-Module-Name': 'net.kyori.event'
-  )
-}
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
 
-if(project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
-  uploadArchives {
-    enabled = System.getenv('TRAVIS') == null || project.version.endsWith('-SNAPSHOT')
+  dependencies {
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.0-M1'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.0-M1'
+  }
 
-    repositories {
-      mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+  task javadocJar(type: Jar) {
+    classifier 'javadoc'
+    from javadoc
+  }
 
-        repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-          authentication(userName: sonatypeUsername, password: sonatypePassword)
-        }
+  task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+  }
 
-        snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-          authentication(userName: sonatypeUsername, password: sonatypePassword)
-        }
+  artifacts {
+    archives javadocJar
+    archives sourcesJar
+  }
 
-        pom.project {
-          description 'An event bus.'
-          name project.name
-          url 'https://github.com/KyoriPowered/event/'
+  signing {
+    required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') && project.hasProperty('signing.keyId') }
+    sign configurations.archives
+  }
 
-          developers {
-            developer {
-              name 'kashike'
-            }
+  if(project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
+    uploadArchives {
+      enabled = System.getenv('TRAVIS') == null || project.version.endsWith('-SNAPSHOT')
+
+      repositories {
+        mavenDeployer {
+          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+          repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
           }
 
-          issueManagement {
-            system 'GitHub Issues'
-            url 'https://github.com/KyoriPowered/event/issues'
+          snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
           }
 
-          licenses {
-            license {
-              name 'MIT License'
-              url 'https://opensource.org/licenses/MIT'
-            }
-          }
-
-          scm {
-            connection 'scm:git@github.com:KyoriPowered/event.git'
-            developerConnection 'scm:git@github.com:KyoriPowered/event.git'
+          pom.project {
+            description 'An event bus.'
+            name project.name
             url 'https://github.com/KyoriPowered/event/'
+
+            developers {
+              developer {
+                name 'kashike'
+              }
+            }
+
+            issueManagement {
+              system 'GitHub Issues'
+              url 'https://github.com/KyoriPowered/event/issues'
+            }
+
+            licenses {
+              license {
+                name 'MIT License'
+                url 'https://opensource.org/licenses/MIT'
+              }
+            }
+
+            scm {
+              connection 'scm:git@github.com:KyoriPowered/event.git'
+              developerConnection 'scm:git@github.com:KyoriPowered/event.git'
+              url 'https://github.com/KyoriPowered/event/'
+            }
           }
         }
       }

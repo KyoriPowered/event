@@ -1,0 +1,10 @@
+dependencies {
+  compile 'com.google.guava:guava:21.0'
+  compile 'org.checkerframework:checker-qual:2.5.4'
+}
+
+jar {
+  manifest.attributes(
+    'Automatic-Module-Name': 'net.kyori.event'
+  )
+}
