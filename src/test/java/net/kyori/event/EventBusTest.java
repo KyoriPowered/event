@@ -23,6 +23,12 @@
  */
 package net.kyori.event;
 
+import net.kyori.event.base.Cancellable;
+import net.kyori.event.method.executor.ASMEventExecutorFactory;
+import net.kyori.event.method.MethodEventBus;
+import net.kyori.event.method.SimpleMethodEventBus;
+import net.kyori.event.method.annotation.IncludeCancelled;
+import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EventBusTest {
-  private final EventBus<Object, Object> bus = new SimpleEventBus<>(new ASMEventExecutorFactory<>());
+  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test
   void testListener() {

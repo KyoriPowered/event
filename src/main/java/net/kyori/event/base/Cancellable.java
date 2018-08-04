@@ -21,37 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package net.kyori.event.base;
 
 /**
- * An event bus.
- *
- * @param <E> the event type
- * @param <L> the listener type
+ * A cancellable event.
  */
-public interface EventBus<E, L> {
+public interface Cancellable {
   /**
-   * Registers all subscriber methods on {@code listener} to receive events.
+   * Tests if the event has been cancelled.
    *
-   * @param listener the listener
+   * @return {@code true} if the event has been cancelled, {@code false} otherwise
    */
-  void register(final @NonNull L listener);
+  boolean cancelled();
 
   /**
-   * Unregisters all subscriber methods on a registered {@code listener}.
+   * Sets the cancelled state of the event.
    *
-   * @param listener the listener
+   * @param cancelled {@code true} if the event should be cancelled, {@code false} otherwise
    */
-  void unregister(final @NonNull L listener);
+  void cancelled(final boolean cancelled);
 
   /**
-   * Posts an event to all registered subscribers.
+   * An abstract implementation of a cancellable event.
    *
-   * @param event the event
-   * @param <T> the throwable type
-   * @throws T if an exception was encountered
+   * <p>This implementation is not always possible to use if {@link EventBus} requires events
+   * to implement an {@code abstract} class.</p>
    */
-  <T extends Throwable> void post(final @NonNull E event) throws T;
+  abstract class Impl implements Cancellable {
+    // protected to allow children classes to access
+    protected boolean cancelled;
+
+    @Override
+    public boolean cancelled() {
+      return this.cancelled;
+    }
+
+    @Override
+    public void cancelled(final boolean cancelled) {
+      this.cancelled = cancelled;
+    }
+  }
 }

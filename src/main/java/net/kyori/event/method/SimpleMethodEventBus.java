@@ -21,19 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method;
 
+import net.kyori.event.base.SimpleEventBus;
+import net.kyori.event.method.executor.EventExecutor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public class EventException extends Exception {
-  private final @NonNull Object event;
+/**
+ * A simple implementation of a method event bus.
+ */
+public class SimpleMethodEventBus<E, L> extends SimpleEventBus<E> implements MethodEventBus<E, L> {
+  private final MethodEventHandlerFactory<E, L> factory;
 
-  public EventException(final @NonNull Object event, final Throwable cause) {
-    super(cause);
-    this.event = event;
+  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
+    this.factory = new MethodEventHandlerFactory<>(factory);
   }
 
-  public @NonNull Object event() {
-    return this.event;
+  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull SubscriberFilter<L> filter) {
+    this.factory = new MethodEventHandlerFactory<>(factory, filter);
   }
+
+  @Override
+  public void register(@NonNull L listener) {
+    factory.findHandlers(listener, this::register);
+  }
+
+  @Override
+  public void unregister(@NonNull L listener) {
+    unregisterMatching(h -> h instanceof MethodEventHandler && ((MethodEventHandler) h).getListener() == listener);
+  }
+
 }
