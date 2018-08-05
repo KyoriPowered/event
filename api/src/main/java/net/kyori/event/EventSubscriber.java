@@ -26,7 +26,6 @@ package net.kyori.event;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
@@ -70,7 +69,6 @@ public interface EventSubscriber<E> {
    * @return the generic type of the subscriber
    */
   default @Nullable Type genericType() {
-    final ParameterizedType type = (ParameterizedType) this.getClass().getGenericSuperclass();
-    return type.getActualTypeArguments()[0];
+    return null;
   }
 }
