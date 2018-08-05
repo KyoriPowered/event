@@ -21,44 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method.asm;
+package net.kyori.event;
 
-import net.kyori.event.method.MethodEventBus;
-import net.kyori.event.method.SimpleMethodEventBus;
-import net.kyori.event.method.Subscribe;
 import org.junit.jupiter.api.Test;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FilteredEventBusTest {
-  private final AtomicInteger result = new AtomicInteger();
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
+class PostResultEventBusTest {
+  private final EventBus<Integer> bus = new SimpleEventBus<>();
 
   @Test
-  void testListener() {
-    this.bus.register(new TestListener());
-    this.bus.post(new TestEvent());
-    assertEquals(1, this.result.get());
-  }
+  void testPostResult() {
+    this.bus.register(Integer.class, event -> {
+      if (event % 5 == 0) {
+        throw new Throwable();
+      }
+    });
+    this.bus.register(Integer.class, event -> {
+      if (event % 2 == 0) {
+        throw new Exception();
+      }
+    });
 
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface SomeFilter {}
-  public final class TestEvent {}
+    assertTrue(this.bus.post(7).wasSuccessful());
 
-  public class TestListener {
-    @Subscribe
-    public void withoutFilter(final TestEvent event) {
-      FilteredEventBusTest.this.result.getAndIncrement();
-    }
+    PostResult result1 = this.bus.post(5);
+    assertFalse(result1.wasSuccessful());
+    assertEquals(1, result1.exceptions().size());
+    assertEquals(Throwable.class, result1.exceptions().get(0).getClass());
 
-    @SomeFilter
-    @Subscribe
-    public void withFilter(final TestEvent event) {
-      FilteredEventBusTest.this.result.getAndIncrement();
-    }
+    PostResult result2 = this.bus.post(10);
+    assertFalse(result2.wasSuccessful());
+    assertEquals(2, result2.exceptions().size());
   }
 }

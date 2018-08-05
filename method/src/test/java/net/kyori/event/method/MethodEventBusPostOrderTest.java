@@ -21,12 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method.asm;
+package net.kyori.event.method;
 
 import net.kyori.event.PostOrder;
-import net.kyori.event.method.MethodEventBus;
-import net.kyori.event.method.SimpleMethodEventBus;
-import net.kyori.event.method.Subscribe;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
@@ -35,12 +32,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class OrderedEventBusTest {
+class MethodEventBusPostOrderTest {
   private final AtomicInteger earlyResult = new AtomicInteger();
   private final AtomicInteger normalResult = new AtomicInteger();
   private final AtomicInteger lateResult = new AtomicInteger();
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
-  private final MethodEventBus<Object, Object> filteredBus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(FilteredEventBusTest.SomeFilter.class));
+  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
+  private final MethodEventBus<Object, Object> filteredBus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(MethodEventBusFilteredTest.SomeFilter.class));
 
   @Test
   void testListener() {
@@ -60,29 +57,29 @@ class OrderedEventBusTest {
   public class TestListener {
     @Subscribe(value = PostOrder.EARLY)
     public void early(final TestEvent event) {
-      OrderedEventBusTest.this.earlyResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.earlyResult.getAndIncrement();
     }
 
     @Subscribe(value = PostOrder.NORMAL)
     public void normal(final TestEvent event) {
-      OrderedEventBusTest.this.normalResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.normalResult.getAndIncrement();
     }
 
     @SomeFilter
     @Subscribe(value = PostOrder.NORMAL)
     public void filteredNormal(final TestEvent event) {
-      OrderedEventBusTest.this.normalResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.normalResult.getAndIncrement();
     }
 
     @Subscribe(value = PostOrder.LATE)
     public void late(final TestEvent event) {
-      OrderedEventBusTest.this.lateResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.lateResult.getAndIncrement();
     }
 
     @SomeFilter
     @Subscribe(value = PostOrder.LATE)
     public void filteredLate(final TestEvent event) {
-      OrderedEventBusTest.this.lateResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.lateResult.getAndIncrement();
     }
   }
 }

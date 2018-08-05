@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class EventBusTest {
+class ASMEventBusTest {
   private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
 
   @Test

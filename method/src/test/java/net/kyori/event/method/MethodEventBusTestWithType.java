@@ -21,21 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method.asm;
+package net.kyori.event.method;
 
 import com.google.common.reflect.TypeToken;
 import net.kyori.event.ReifiedEvent;
-import net.kyori.event.method.MethodEventBus;
-import net.kyori.event.method.SimpleMethodEventBus;
-import net.kyori.event.method.Subscribe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class EventBusTestWithType {
-  private final MethodEventBus<Event, Listener> bus = new SimpleMethodEventBus<>(new ASMEventExecutorFactory<>());
+class MethodEventBusTestWithType {
+  private final MethodEventBus<Event, Listener> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
 
   @Test
   void testListener() {
