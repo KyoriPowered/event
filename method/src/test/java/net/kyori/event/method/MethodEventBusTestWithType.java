@@ -25,6 +25,7 @@ package net.kyori.event.method;
 
 import com.google.common.reflect.TypeToken;
 import net.kyori.event.ReifiedEvent;
+import net.kyori.event.method.annotation.Subscribe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 

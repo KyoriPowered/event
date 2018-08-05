@@ -23,17 +23,21 @@
  */
 package net.kyori.event.method;
 
+import net.kyori.event.method.annotation.DefaultMethodScanner;
+import net.kyori.event.method.annotation.Subscribe;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MethodEventBusFilteredTest {
   private final AtomicInteger result = new AtomicInteger();
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>(), (listener, method) -> method.isAnnotationPresent(SomeFilter.class));
+  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>(), new FilteredMethodScanner<>());
 
   @Test
   void testListener() {
@@ -44,7 +48,15 @@ class MethodEventBusFilteredTest {
 
   @Retention(RetentionPolicy.RUNTIME)
   @interface SomeFilter {}
+
   public final class TestEvent {}
+
+  public final class FilteredMethodScanner<L> extends DefaultMethodScanner<L> {
+    @Override
+    public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
+      return super.shouldRegister(listener, method) && method.isAnnotationPresent(MethodEventBusFilteredTest.SomeFilter.class);
+    }
+  }
 
   public class TestListener {
     @Subscribe

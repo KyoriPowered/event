@@ -24,6 +24,8 @@
 package net.kyori.event.method;
 
 import net.kyori.event.EventSubscriber;
+import net.kyori.event.PostOrder;
+import net.kyori.event.method.annotation.DefaultMethodScanner;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,21 +36,23 @@ import java.util.function.BiConsumer;
 final class MethodEventSubscriberFactory<E, L> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SimpleMethodEventBus.class);
   private final EventExecutor.Factory<E, L> factory;
-  private final SubscriberFilter<L> filter;
+  private final MethodScanner<L> methodScanner;
 
   MethodEventSubscriberFactory(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this(factory, (SubscriberFilter<L>) SubscriberFilter.TRUE);
+    this(factory, DefaultMethodScanner.getInstance());
   }
 
-  MethodEventSubscriberFactory(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull SubscriberFilter<L> filter) {
+  MethodEventSubscriberFactory(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull MethodScanner<L> methodScanner) {
     this.factory = factory;
-    this.filter = filter;
+    this.methodScanner = methodScanner;
   }
 
   void findSubscribers(final @NonNull L listener, final BiConsumer<@NonNull Class<? extends E>, @NonNull EventSubscriber<E>> consumer) {
     for(final Method method : listener.getClass().getDeclaredMethods()) {
-      final Subscribe definition = method.getAnnotation(Subscribe.class);
-      if(definition == null || !this.filter.test(listener, method)) {
+      if (method.getParameterCount() != 1) {
+        continue;
+      }
+      if(!this.methodScanner.shouldRegister(listener, method)) {
         continue;
       }
       final EventExecutor<E, L> executor;
@@ -59,8 +63,11 @@ final class MethodEventSubscriberFactory<E, L> {
         continue;
       }
 
+      //noinspection unchecked
       final Class<? extends E> eventClass = (Class<E>) method.getParameterTypes()[0];
-      consumer.accept(eventClass, new MethodEventSubscriber<>(eventClass, method, executor, listener, definition.value(), !method.isAnnotationPresent(IgnoreCancelled.class)));
+      final PostOrder postOrder = this.methodScanner.postOrder(listener, method);
+      boolean consumeCancelled = this.methodScanner.consumeCancelledEvents(listener, method);
+      consumer.accept(eventClass, new MethodEventSubscriber<>(eventClass, method, executor, listener, postOrder, consumeCancelled));
     }
   }
 }

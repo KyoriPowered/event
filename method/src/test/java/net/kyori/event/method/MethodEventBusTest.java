@@ -24,6 +24,8 @@
 package net.kyori.event.method;
 
 import net.kyori.event.Cancellable;
+import net.kyori.event.method.annotation.IgnoreCancelled;
+import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;

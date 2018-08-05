@@ -26,6 +26,8 @@ package net.kyori.event.method;
 import net.kyori.event.EventBus;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.lang.reflect.Method;
+
 /**
  * Extension of {@link EventBus} which supports defining event subscribers as methods in a class.
  *
@@ -34,14 +36,15 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 public interface MethodEventBus<E, L> extends EventBus<E> {
   /**
-   * Registers all methods annotated with {@link Subscribe} on {@code listener} to receive events.
+   * Registers all methods determined to be {@link MethodScanner#shouldRegister(Object, Method) valid}
+   * on the {@code listener} to receive events.
    *
    * @param listener the listener
    */
   void register(final @NonNull L listener);
 
   /**
-   * Unregisters all subscriber methods on a registered {@code listener}.
+   * Unregisters all methods on a registered {@code listener}.
    *
    * @param listener the listener
    */

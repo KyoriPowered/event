@@ -23,19 +23,38 @@
  */
 package net.kyori.event.method;
 
-import net.kyori.event.Cancellable;
+import net.kyori.event.PostOrder;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 
 /**
- * Marks an event subscriber that should not receive events even if they have been {@link Cancellable#cancelled() cancelled}.
+ * Determines which methods on a listener should be registered
+ * as subscribers, and what properties they should have.
+ *
+ * @param <L> the listener type
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface IgnoreCancelled {
+public interface MethodScanner<L> {
+  /**
+   * Gets if the factory should generate a subscriber for this method.
+   *
+   * @param listener the listener being scanned
+   * @param method the method declaration being considered
+   * @return if a subscriber should be registered
+   */
+  boolean shouldRegister(final @NonNull L listener, final @NonNull Method method);
+
+  /**
+   * Gets the {@link PostOrder} the resultant subscriber should be called at.
+   *
+   * @return the post order of this subscriber
+   */
+  @NonNull PostOrder postOrder(final @NonNull L listener, final @NonNull Method method);
+
+  /**
+   * Gets if cancelled events should be posted to the resultant subscriber.
+   *
+   * @return if cancelled events should be posted
+   */
+  boolean consumeCancelledEvents(final @NonNull L listener, final @NonNull Method method);
 }

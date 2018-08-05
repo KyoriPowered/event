@@ -21,32 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.method.annotation;
 
-import net.kyori.event.SimpleEventBus;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.kyori.event.PostOrder;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A simple implementation of a method event bus.
+ * Marks a method as an event subscriber.
+ *
+ * @see IgnoreCancelled
  */
-public class SimpleMethodEventBus<E, L> extends SimpleEventBus<E> implements MethodEventBus<E, L> {
-  private final MethodEventSubscriberFactory<E, L> factory;
-
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this.factory = new MethodEventSubscriberFactory<>(factory);
-  }
-
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull MethodScanner<L> methodScanner) {
-    this.factory = new MethodEventSubscriberFactory<>(factory, methodScanner);
-  }
-
-  @Override
-  public void register(final @NonNull L listener) {
-    this.factory.findSubscribers(listener, this::register);
-  }
-
-  @Override
-  public void unregister(final @NonNull L listener) {
-    this.unregisterMatching(h -> h instanceof MethodEventSubscriber && ((MethodEventSubscriber) h).listener() == listener);
-  }
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Subscribe {
+  /**
+   * Gets the post order.
+   *
+   * @return the post order
+   */
+  PostOrder value() default PostOrder.NORMAL;
 }

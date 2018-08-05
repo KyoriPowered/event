@@ -55,7 +55,7 @@ public interface EventSubscriber<E> {
   }
 
   /**
-   * Gets if cancelled event should be posted to this subscriber.
+   * Gets if cancelled events should be posted to this subscriber.
    *
    * @return if cancelled events should be posted
    */

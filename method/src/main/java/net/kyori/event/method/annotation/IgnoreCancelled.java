@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.method.annotation;
 
-import net.kyori.event.PostOrder;
+import net.kyori.event.Cancellable;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -32,18 +32,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an event subscriber.
- *
- * @see IgnoreCancelled
+ * Marks an event subscriber that should not receive events even if they have been {@link Cancellable#cancelled() cancelled}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Subscribe {
-  /**
-   * Gets the post order.
-   *
-   * @return the post order
-   */
-  PostOrder value() default PostOrder.NORMAL;
+public @interface IgnoreCancelled {
 }

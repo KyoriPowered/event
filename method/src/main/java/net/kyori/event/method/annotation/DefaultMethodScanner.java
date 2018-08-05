@@ -21,30 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.method.annotation;
 
+import net.kyori.event.PostOrder;
+import net.kyori.event.method.MethodScanner;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.lang.reflect.Method;
 
 /**
- * A subscriber filter.
+ * Implementation of {@link MethodScanner} using the built-in
+ * {@link Subscribe} and {@link IgnoreCancelled} annotations.
  *
  * @param <L> the listener type
  */
-@FunctionalInterface
-public interface SubscriberFilter<L> {
-  /**
-   * A subscriber filter which always returns {@code true}.
-   */
-  SubscriberFilter<?> TRUE = (listener, method) -> true;
+public class DefaultMethodScanner<L> implements MethodScanner<L> {
+  private static final DefaultMethodScanner INSTANCE = new DefaultMethodScanner();
 
-  /**
-   * Tests if a method should be registered as an event subscriber.
-   *
-   * @param listener the listener
-   * @param method the method
-   * @return {@code true} if the method should be registered an event subscriber, {@code false} otherwise
-   */
-  boolean test(final @NonNull L listener, final @NonNull Method method);
+  public static <L> MethodScanner<L> getInstance() {
+    //noinspection unchecked
+    return (MethodScanner<L>) INSTANCE;
+  }
+
+  // Allow subclasses
+  protected DefaultMethodScanner() {
+
+  }
+
+  @Override
+  public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
+    return method.getAnnotation(Subscribe.class) != null;
+  }
+
+  @Override
+  public @NonNull PostOrder postOrder(final @NonNull L listener, final @NonNull Method method) {
+    return method.getAnnotation(Subscribe.class).value();
+  }
+
+  @Override
+  public boolean consumeCancelledEvents(final @NonNull L listener, final @NonNull Method method) {
+    return !method.isAnnotationPresent(IgnoreCancelled.class);
+  }
 }
