@@ -23,6 +23,7 @@
  */
 package net.kyori.event.method;
 
+import com.google.common.collect.Lists;
 import net.kyori.event.PostOrder;
 import net.kyori.event.method.annotation.DefaultMethodScanner;
 import net.kyori.event.method.annotation.Subscribe;
@@ -32,66 +33,39 @@ import org.junit.jupiter.api.Test;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MethodEventBusPostOrderTest {
-  private final AtomicInteger earlyResult = new AtomicInteger();
-  private final AtomicInteger normalResult = new AtomicInteger();
-  private final AtomicInteger lateResult = new AtomicInteger();
+  private final List<Integer> results = new ArrayList<>();
   private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
-  private final MethodEventBus<Object, Object> filteredBus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>(), new FilteredMethodScanner<>());
 
   @Test
   void testListener() {
     this.bus.register(new TestListener());
-    this.filteredBus.register(new TestListener());
     this.bus.post(new TestEvent());
-    this.filteredBus.post(new TestEvent());
-    assertEquals(1, this.earlyResult.get());
-    assertEquals(2, this.normalResult.get());
-    assertEquals(2, this.lateResult.get());
+    assertEquals(Lists.newArrayList(1, 2, 3), this.results);
   }
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface SomeFilter {}
 
   public final class TestEvent {}
-
-  public final class FilteredMethodScanner<L> extends DefaultMethodScanner<L> {
-    @Override
-    public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
-      return super.shouldRegister(listener, method) && method.isAnnotationPresent(MethodEventBusPostOrderTest.SomeFilter.class);
-    }
-  }
 
   public class TestListener {
     @Subscribe(value = PostOrder.EARLY)
     public void early(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.earlyResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.results.add(1);
     }
 
     @Subscribe(value = PostOrder.NORMAL)
     public void normal(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.normalResult.getAndIncrement();
-    }
-
-    @SomeFilter
-    @Subscribe(value = PostOrder.NORMAL)
-    public void filteredNormal(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.normalResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.results.add(2);
     }
 
     @Subscribe(value = PostOrder.LATE)
     public void late(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.lateResult.getAndIncrement();
-    }
-
-    @SomeFilter
-    @Subscribe(value = PostOrder.LATE)
-    public void filteredLate(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.lateResult.getAndIncrement();
+      MethodEventBusPostOrderTest.this.results.add(3);
     }
   }
 }
