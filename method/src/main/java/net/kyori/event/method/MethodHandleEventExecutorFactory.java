@@ -41,6 +41,6 @@ public final class MethodHandleEventExecutorFactory<E, L> implements EventExecut
     final MethodHandle handle = MethodHandles.publicLookup()
       .unreflect(method)
       .bindTo(object);
-    return (listener, event) -> handle.invokeWithArguments(event);
+    return (listener, event) -> handle.invoke(event);
   }
 }
