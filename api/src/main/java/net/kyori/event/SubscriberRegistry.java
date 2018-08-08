@@ -27,14 +27,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -62,7 +60,7 @@ final class SubscriberRegistry<E> {
    * A cache containing a link between an event class, and the eventsubscribers which
    * should be passed the given type of event.
    */
-  private final LoadingCache<Class<?>, ListMultimap<PostOrder, EventSubscriber<?>>> cache = CacheBuilder.newBuilder()
+  private final LoadingCache<Class<?>, List<EventSubscriber<?>>> cache = CacheBuilder.newBuilder()
     .initialCapacity(85)
     .build(CacheLoader.from(eventClass -> {
       final List<EventSubscriber<?>> subscribers = new ArrayList<>();
@@ -74,11 +72,8 @@ final class SubscriberRegistry<E> {
         }
       }
 
-      final ListMultimap<PostOrder, EventSubscriber<?>> byOrder = Multimaps.newListMultimap(new EnumMap<>(PostOrder.class), ArrayList::new);
-      for(final EventSubscriber<?> subscriber : subscribers) {
-        byOrder.put(subscriber.postOrder(), subscriber);
-      }
-      return byOrder;
+      subscribers.sort(Comparator.comparing(EventSubscriber::postOrder));
+      return subscribers;
     }));
   private final Object lock = new Object();
 
@@ -105,7 +100,7 @@ final class SubscriberRegistry<E> {
     }
   }
 
-  @NonNull List<EventSubscriber<?>> subscribers(final @NonNull Object event, final @NonNull PostOrder priority) {
-    return this.cache.getUnchecked(event.getClass()).get(priority);
+  @NonNull List<EventSubscriber<?>> subscribers(final @NonNull Object event) {
+    return this.cache.getUnchecked(event.getClass());
   }
 }

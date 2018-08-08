@@ -52,22 +52,20 @@ public class SimpleEventBus<E> implements EventBus<E> {
   @SuppressWarnings("unchecked")
   public @NonNull PostResult post(final @NonNull E event) {
     ImmutableList.Builder<Throwable> exceptions = null; // save on an allocation
-    for(final PostOrder priority : PostOrder.values()) {
-      for(final EventSubscriber subscriber : this.registry.subscribers(event, priority)) {
-        if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !subscriber.consumeCancelledEvents())) {
-          continue;
+    for(final EventSubscriber subscriber : this.registry.subscribers(event)) {
+      if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !subscriber.consumeCancelledEvents())) {
+        continue;
+      }
+      if(event instanceof ReifiedEvent<?> && !((ReifiedEvent<?>) event).type().getType().equals(subscriber.genericType())) {
+        continue;
+      }
+      try {
+        subscriber.invoke(event);
+      } catch(final Throwable e) {
+        if(exceptions == null) {
+          exceptions = ImmutableList.builder();
         }
-        if(event instanceof ReifiedEvent<?> && !((ReifiedEvent<?>) event).type().getType().equals(subscriber.genericType())) {
-          continue;
-        }
-        try {
-          subscriber.invoke(event);
-        } catch(final Throwable e) {
-          if(exceptions == null) {
-            exceptions = ImmutableList.builder();
-          }
-          exceptions.add(e);
-        }
+        exceptions.add(e);
       }
     }
     if(exceptions == null) {
