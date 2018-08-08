@@ -49,6 +49,7 @@ public class SimpleEventBus<E> implements EventBus<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public @NonNull PostResult post(final @NonNull E event) {
     ImmutableList.Builder<Throwable> exceptions = null; // save on an allocation
     for(final PostOrder priority : PostOrder.values()) {
@@ -60,7 +61,6 @@ public class SimpleEventBus<E> implements EventBus<E> {
           continue;
         }
         try {
-          //noinspection unchecked
           subscriber.invoke(event);
         } catch(final Throwable e) {
           if(exceptions == null) {

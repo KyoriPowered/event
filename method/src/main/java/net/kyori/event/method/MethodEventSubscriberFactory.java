@@ -39,7 +39,7 @@ final class MethodEventSubscriberFactory<E, L> {
   private final MethodScanner<L> methodScanner;
 
   MethodEventSubscriberFactory(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this(factory, DefaultMethodScanner.getInstance());
+    this(factory, DefaultMethodScanner.get());
   }
 
   MethodEventSubscriberFactory(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull MethodScanner<L> methodScanner) {
@@ -47,6 +47,7 @@ final class MethodEventSubscriberFactory<E, L> {
     this.methodScanner = methodScanner;
   }
 
+  @SuppressWarnings("unchecked")
   void findSubscribers(final @NonNull L listener, final BiConsumer<@NonNull Class<? extends E>, @NonNull EventSubscriber<E>> consumer) {
     for(final Method method : listener.getClass().getDeclaredMethods()) {
       if (method.getParameterCount() != 1) {
@@ -63,10 +64,9 @@ final class MethodEventSubscriberFactory<E, L> {
         continue;
       }
 
-      //noinspection unchecked
       final Class<? extends E> eventClass = (Class<E>) method.getParameterTypes()[0];
       final PostOrder postOrder = this.methodScanner.postOrder(listener, method);
-      boolean consumeCancelled = this.methodScanner.consumeCancelledEvents(listener, method);
+      final boolean consumeCancelled = this.methodScanner.consumeCancelledEvents(listener, method);
       consumer.accept(eventClass, new MethodEventSubscriber<>(eventClass, method, executor, listener, postOrder, consumeCancelled));
     }
   }

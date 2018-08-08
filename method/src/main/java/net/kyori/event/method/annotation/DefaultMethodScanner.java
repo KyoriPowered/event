@@ -38,14 +38,13 @@ import java.lang.reflect.Method;
 public class DefaultMethodScanner<L> implements MethodScanner<L> {
   private static final DefaultMethodScanner INSTANCE = new DefaultMethodScanner();
 
-  public static <L> MethodScanner<L> getInstance() {
-    //noinspection unchecked
+  @SuppressWarnings("unchecked")
+  public static <L> MethodScanner<L> get() {
     return (MethodScanner<L>) INSTANCE;
   }
 
   // Allow subclasses
   protected DefaultMethodScanner() {
-
   }
 
   @Override
