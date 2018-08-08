@@ -63,7 +63,7 @@ public class SimpleEventBus<E> implements EventBus<E> {
           //noinspection unchecked
           subscriber.invoke(event);
         } catch(final Throwable e) {
-          if (exceptions == null) {
+          if(exceptions == null) {
             exceptions = ImmutableList.builder();
           }
           exceptions.add(e);

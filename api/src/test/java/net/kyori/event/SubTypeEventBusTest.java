@@ -34,7 +34,7 @@ class SubTypeEventBusTest {
 
   @Test
   void testSubTypes() {
-    AtomicReference<boolean[]> calls = new AtomicReference<>();
+    final AtomicReference<boolean[]> calls = new AtomicReference<>();
 
     this.bus.register(Integer.class, event -> calls.get()[0] = true);
     this.bus.register(Number.class, event -> calls.get()[1] = true);

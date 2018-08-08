@@ -23,6 +23,7 @@
  */
 package net.kyori.event;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,8 +39,8 @@ class SimpleEventBusTest {
 
     this.bus.register(TestEvent.class, new EventSubscriber<TestEvent>() {
       @Override
-      public void invoke(final TestEvent e) {
-        e.count.incrementAndGet();
+      public void invoke(final @NonNull TestEvent event) {
+        event.count.incrementAndGet();
       }
 
       @Override

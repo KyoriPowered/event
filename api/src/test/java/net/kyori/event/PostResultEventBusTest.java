@@ -35,24 +35,24 @@ class PostResultEventBusTest {
   @Test
   void testPostResult() {
     this.bus.register(Integer.class, event -> {
-      if (event % 5 == 0) {
+      if(event % 5 == 0) {
         throw new Throwable();
       }
     });
     this.bus.register(Integer.class, event -> {
-      if (event % 2 == 0) {
+      if(event % 2 == 0) {
         throw new Exception();
       }
     });
 
     assertTrue(this.bus.post(7).wasSuccessful());
 
-    PostResult result1 = this.bus.post(5);
+    final PostResult result1 = this.bus.post(5);
     assertFalse(result1.wasSuccessful());
     assertEquals(1, result1.exceptions().size());
     assertEquals(Throwable.class, result1.exceptions().get(0).getClass());
 
-    PostResult result2 = this.bus.post(10);
+    final PostResult result2 = this.bus.post(10);
     assertFalse(result2.wasSuccessful());
     assertEquals(2, result2.exceptions().size());
   }
