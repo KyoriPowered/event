@@ -47,6 +47,8 @@ public interface MethodScanner<L> {
   /**
    * Gets the {@link PostOrder} the resultant subscriber should be called at.
    *
+   * @param listener the listener
+   * @param method the method
    * @return the post order of this subscriber
    */
   @NonNull PostOrder postOrder(final @NonNull L listener, final @NonNull Method method);
@@ -54,6 +56,8 @@ public interface MethodScanner<L> {
   /**
    * Gets if cancelled events should be posted to the resultant subscriber.
    *
+   * @param listener the listener      
+   * @param method the method
    * @return if cancelled events should be posted
    */
   boolean consumeCancelledEvents(final @NonNull L listener, final @NonNull Method method);
