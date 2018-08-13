@@ -41,6 +41,7 @@ public interface EventBus<E> {
    *
    * @param clazz the registered type. the subscriber will only receive events which can be casted to this type.
    * @param subscriber the subscriber
+   * @param <T> the event type
    */
   <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber);
 
@@ -64,6 +65,7 @@ public interface EventBus<E> {
    *
    * @param clazz the event clazz
    * @return whether or not the specified event has subscribers
+   * @param <T> the event type
    */
   <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
 }
