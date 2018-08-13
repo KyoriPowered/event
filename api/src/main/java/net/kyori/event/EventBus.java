@@ -58,4 +58,12 @@ public interface EventBus<E> {
    * @return the post result of the operation
    */
   @NonNull PostResult post(final @NonNull E event);
+
+  /**
+   * Determines whether or not the specified event has listeners.
+   *
+   * @param event the event
+   * @return whether or not the specified event has listeners
+   */
+  boolean hasSubscribers(final @NonNull E event);
 }

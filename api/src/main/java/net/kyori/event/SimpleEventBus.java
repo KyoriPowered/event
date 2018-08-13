@@ -74,4 +74,9 @@ public class SimpleEventBus<E> implements EventBus<E> {
       return PostResult.failure(exceptions.build());
     }
   }
+
+  @Override
+  public boolean hasSubscribers(final @NonNull E event) {
+    return !this.registry.subscribers(event).isEmpty();
+  }
 }
