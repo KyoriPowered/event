@@ -76,7 +76,7 @@ public class SimpleEventBus<E> implements EventBus<E> {
   }
 
   @Override
-  public boolean hasSubscribers(final @NonNull E event) {
-    return !this.registry.subscribers(event).isEmpty();
+  public <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz) {
+    return !this.registry.subscribers(clazz).isEmpty();
   }
 }

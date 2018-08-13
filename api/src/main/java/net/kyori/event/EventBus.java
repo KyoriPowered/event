@@ -60,10 +60,10 @@ public interface EventBus<E> {
   @NonNull PostResult post(final @NonNull E event);
 
   /**
-   * Determines whether or not the specified event has listeners.
+   * Determines whether or not the specified event has subscribers.
    *
-   * @param event the event
-   * @return whether or not the specified event has listeners
+   * @param clazz the event clazz
+   * @return whether or not the specified event has subscribers
    */
-  boolean hasSubscribers(final @NonNull E event);
+  <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
 }

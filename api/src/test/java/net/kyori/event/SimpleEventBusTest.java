@@ -39,7 +39,7 @@ class SimpleEventBusTest {
   void testListener() {
     final TestEvent event = new TestEvent();
 
-    assertFalse(this.bus.hasSubscribers(event));
+    assertFalse(this.bus.hasSubscribers(TestEvent.class));
 
     this.bus.register(TestEvent.class, new EventSubscriber<TestEvent>() {
       @Override
@@ -53,7 +53,7 @@ class SimpleEventBusTest {
       }
     });
 
-    assertTrue(this.bus.hasSubscribers(event));
+    assertTrue(this.bus.hasSubscribers(TestEvent.class));
 
     event.cancelled(true);
     this.bus.post(event);
