@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SimpleEventBusTest {
   private final EventBus<Object> bus = new SimpleEventBus<>();
@@ -36,6 +38,8 @@ class SimpleEventBusTest {
   @Test
   void testListener() {
     final TestEvent event = new TestEvent();
+
+    assertFalse(this.bus.hasSubscribers(TestEvent.class));
 
     this.bus.register(TestEvent.class, new EventSubscriber<TestEvent>() {
       @Override
@@ -48,6 +52,8 @@ class SimpleEventBusTest {
         return false;
       }
     });
+
+    assertTrue(this.bus.hasSubscribers(TestEvent.class));
 
     event.cancelled(true);
     this.bus.post(event);
