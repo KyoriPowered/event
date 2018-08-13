@@ -27,7 +27,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeToken;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -55,7 +56,7 @@ final class SubscriberRegistry<E> {
    * <p>An event subscriber is mapped to the class it is registered with.</p>
    */
   // technically a Multimap<Class<T>, EventSubscriber<? super T>>
-  private final Multimap<Class<?>, EventSubscriber<?>> subscribers = HashMultimap.create();
+  private final SetMultimap<Class<?>, EventSubscriber<?>> subscribers = HashMultimap.create();
   /**
    * A cache containing a link between an event class, and the eventsubscribers which
    * should be passed the given type of event.
@@ -97,6 +98,19 @@ final class SubscriberRegistry<E> {
       if(dirty) {
         this.cache.invalidateAll();
       }
+    }
+  }
+
+  void unregisterAll() {
+    synchronized(this.lock) {
+      this.subscribers.clear();
+      this.cache.invalidateAll();
+    }
+  }
+
+  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
+    synchronized(this.lock) {
+      return ImmutableSetMultimap.copyOf(this.subscribers);
     }
   }
 
