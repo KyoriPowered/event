@@ -71,41 +71,41 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
   public ASMEventExecutorFactory(@NonNull ClassLoader parent) {
     this.eventExecutorClassLoader = new DefiningClassLoader(parent);
     this.cache = CacheBuilder.newBuilder()
-        .initialCapacity(16)
-        .weakValues()
-        .build(CacheLoader.from(method -> {
-          requireNonNull(method, "method");
-          final Class<?> listener = method.getDeclaringClass();
-          final String listenerName = Type.getInternalName(listener);
-          final Class<?> parameter = method.getParameterTypes()[0];
-          final String className = this.executorClassName(listener, method, parameter);
-          final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-          cw.visit(V1_8, ACC_PUBLIC | ACC_FINAL, className.replace('.', '/'), null, SUPER_NAME, GENERATED_EVENT_EXECUTOR_NAME);
-          MethodVisitor mv;
-          {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-            mv.visitCode();
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, SUPER_NAME, "<init>", "()V", false);
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-          }
-          {
-            mv = cw.visitMethod(ACC_PUBLIC, "invoke", EXECUTE_DESC, null, null);
-            mv.visitCode();
-            mv.visitVarInsn(ALOAD, 1);
-            mv.visitTypeInsn(CHECKCAST, listenerName);
-            mv.visitVarInsn(ALOAD, 2);
-            mv.visitTypeInsn(CHECKCAST, Type.getInternalName(parameter));
-            mv.visitMethodInsn(INVOKEVIRTUAL, listenerName, method.getName(), Type.getMethodDescriptor(method), false);
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-          }
-          cw.visitEnd();
-          return eventExecutorClassLoader.defineClass(className, cw.toByteArray());
-        }));
+      .initialCapacity(16)
+      .weakValues()
+      .build(CacheLoader.from(method -> {
+        requireNonNull(method, "method");
+        final Class<?> listener = method.getDeclaringClass();
+        final String listenerName = Type.getInternalName(listener);
+        final Class<?> parameter = method.getParameterTypes()[0];
+        final String className = this.executorClassName(listener, method, parameter);
+        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+        cw.visit(V1_8, ACC_PUBLIC | ACC_FINAL, className.replace('.', '/'), null, SUPER_NAME, GENERATED_EVENT_EXECUTOR_NAME);
+        MethodVisitor mv;
+        {
+          mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+          mv.visitCode();
+          mv.visitVarInsn(ALOAD, 0);
+          mv.visitMethodInsn(INVOKESPECIAL, SUPER_NAME, "<init>", "()V", false);
+          mv.visitInsn(RETURN);
+          mv.visitMaxs(0, 0);
+          mv.visitEnd();
+        }
+        {
+          mv = cw.visitMethod(ACC_PUBLIC, "invoke", EXECUTE_DESC, null, null);
+          mv.visitCode();
+          mv.visitVarInsn(ALOAD, 1);
+          mv.visitTypeInsn(CHECKCAST, listenerName);
+          mv.visitVarInsn(ALOAD, 2);
+          mv.visitTypeInsn(CHECKCAST, Type.getInternalName(parameter));
+          mv.visitMethodInsn(INVOKEVIRTUAL, listenerName, method.getName(), Type.getMethodDescriptor(method), false);
+          mv.visitInsn(RETURN);
+          mv.visitMaxs(0, 0);
+          mv.visitEnd();
+        }
+        cw.visitEnd();
+        return eventExecutorClassLoader.defineClass(className, cw.toByteArray());
+      }));
   }
 
   private String executorClassName(final Class<?> listener, final Method method, final Class<?> parameter) {
