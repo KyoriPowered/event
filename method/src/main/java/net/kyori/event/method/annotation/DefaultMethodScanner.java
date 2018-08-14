@@ -39,7 +39,7 @@ public class DefaultMethodScanner<L> implements MethodScanner<L> {
   private static final DefaultMethodScanner INSTANCE = new DefaultMethodScanner();
 
   @SuppressWarnings("unchecked")
-  public static <L> MethodScanner<L> get() {
+  public static <L> @NonNull MethodScanner<L> get() {
     return (MethodScanner<L>) INSTANCE;
   }
 

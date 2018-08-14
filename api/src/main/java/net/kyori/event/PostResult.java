@@ -26,6 +26,7 @@ package net.kyori.event;
 import com.google.common.collect.ImmutableList;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -34,7 +35,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Encapsulates the outcome of a {@link EventBus#post(Object)} call.
  */
 public final class PostResult {
-  private static final PostResult SUCCESS = new PostResult(ImmutableList.of());
+  private static final PostResult SUCCESS = new PostResult(Collections.emptyList());
 
   /**
    * Marks that no exceptions were thrown by subscribers.

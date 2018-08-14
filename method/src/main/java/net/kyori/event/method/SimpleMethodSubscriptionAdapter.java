@@ -126,7 +126,7 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
       return null;
     }
 
-    L listener() {
+    @NonNull L listener() {
       return this.listener;
     }
 
