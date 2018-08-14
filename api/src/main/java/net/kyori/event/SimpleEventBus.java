@@ -26,7 +26,10 @@ package net.kyori.event;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.lang.reflect.Type;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -48,15 +51,56 @@ public class SimpleEventBus<E> implements EventBus<E> {
     return this.type;
   }
 
+  /**
+   * Returns if a given event instance is currently "cancelled".
+   *
+   * <p>The default implementation of this method uses the
+   * {@link Cancellable} interface to determine if an event is cancelled.</p>
+   *
+   * @param event the event
+   * @return true if the event is cancelled
+   */
+  protected boolean eventCancelled(final @NonNull E event) {
+    return event instanceof Cancellable && ((Cancellable) event).cancelled();
+  }
+
+  /**
+   * Gets the generic {@link Type} of a given event.
+   *
+   * <p>The default implementation of this method uses the
+   * {@link ReifiedEvent} interface to read the generic type of
+   * an event.</p>
+   *
+   * @param event the event
+   * @return the generic event type, or null if unknown
+   */
+  protected @Nullable Type eventGenericType(final @NonNull E event) {
+    return event instanceof ReifiedEvent<?> ? ((ReifiedEvent<?>) event).type().getType() : null;
+  }
+
+  /**
+   * Tests if the {@code event} should be posted to the {@code subscriber}.
+   *
+   * <p>The default implementation of this method tests for cancellation
+   * status and matching event/subscriber generic types.</p>
+   *
+   * @param event the event
+   * @param subscriber the subscriber
+   * @return true if the event should be posted
+   */
+  protected boolean shouldPost(final @NonNull E event, final @NonNull EventSubscriber<?> subscriber) {
+    if(!subscriber.consumeCancelledEvents() && this.eventCancelled(event)) {
+      return false;
+    }
+    return Objects.equals(this.eventGenericType(event), subscriber.genericType());
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public @NonNull PostResult post(final @NonNull E event) {
     ImmutableMap.Builder<EventSubscriber<?>, Throwable> exceptions = null; // save on an allocation
-    for(final EventSubscriber subscriber : this.registry.subscribers(event)) {
-      if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !subscriber.consumeCancelledEvents())) {
-        continue;
-      }
-      if(event instanceof ReifiedEvent<?> && !((ReifiedEvent<?>) event).type().getType().equals(subscriber.genericType())) {
+    for(final EventSubscriber subscriber : this.registry.subscribers(event.getClass())) {
+      if(!this.shouldPost(event, subscriber)) {
         continue;
       }
       try {

@@ -114,10 +114,6 @@ final class SubscriberRegistry<E> {
     }
   }
 
-  @NonNull List<EventSubscriber<?>> subscribers(final @NonNull Object event) {
-    return this.cache.getUnchecked(event.getClass());
-  }
-
   @NonNull List<EventSubscriber<?>> subscribers(final @NonNull Class<?> clazz) {
     return this.cache.getUnchecked(clazz);
   }
