@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PostResultEventBusTest {
-  private final EventBus<Integer> bus = new SimpleEventBus<>();
+  private final EventBus<Integer> bus = new SimpleEventBus<>(Integer.class);
 
   @Test
   void testPostResult() {

@@ -79,6 +79,15 @@ public interface EventBus<E> {
   @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
 
   /**
+   * Determines whether or not the specified event has subscribers.
+   *
+   * @param clazz the event clazz
+   * @return whether or not the specified event has subscribers
+   * @param <T> the event type
+   */
+  <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
+
+  /**
    * Posts an event to all registered subscribers.
    *
    * @param event the event
@@ -87,11 +96,11 @@ public interface EventBus<E> {
   @NonNull PostResult post(final @NonNull E event);
 
   /**
-   * Determines whether or not the specified event has subscribers.
+   * Gets the event type of the bus.
    *
-   * @param clazz the event clazz
-   * @return whether or not the specified event has subscribers
-   * @param <T> the event type
+   * <p>This is represented by the <code>E</code> type parameter.</p>
+   *
+   * @return the event type
    */
-  <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
+  @NonNull Class<E> eventType();
 }

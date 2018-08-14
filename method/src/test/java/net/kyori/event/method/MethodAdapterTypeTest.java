@@ -23,88 +23,32 @@
  */
 package net.kyori.event.method;
 
-import com.google.common.reflect.TypeToken;
 import net.kyori.event.EventBus;
-import net.kyori.event.PostResult;
-import net.kyori.event.ReifiedEvent;
 import net.kyori.event.SimpleEventBus;
 import net.kyori.event.method.annotation.Subscribe;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MethodAdapterTypeTest {
-  private final EventBus<Event> bus = new SimpleEventBus<>();
+  private final EventBus<Event> bus = new SimpleEventBus<>(Event.class);
   private final MethodSubscriptionAdapter<Listener> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>());
 
   @Test
-  void testListener() throws PostResult.CompositeException {
+  void testListener() {
     final MyListener listener = new MyListener();
-    this.methodAdapter.register(listener);
-    // first post should set result[0] to true
-    this.bus.post(new MyEvent()).raise();
-    assertTrue(listener.result[0]);
-    assertFalse(listener.result[1]);
-    assertFalse(listener.result[2]);
-    listener.reset();
-    this.bus.post(new GenericEvent<>(Foo.class)).raise();
-    assertFalse(listener.result[0]);
-    assertTrue(listener.result[1]);
-    assertFalse(listener.result[2]);
-    listener.reset();
-    this.bus.post(new GenericEvent<>(Bar.class)).raise();
-    assertFalse(listener.result[0]);
-    assertFalse(listener.result[1]);
-    assertTrue(listener.result[2]);
-    this.methodAdapter.unregister(listener);
-    listener.result[0] = false;
-    // second post should not, as the listener has been unregistered
-    this.bus.post(new MyEvent()).raise();
-    assertFalse(listener.result[0]);
+    assertThrows(SimpleMethodSubscriptionAdapter.SubscriberGenerationException.class, () -> this.methodAdapter.register(listener));
   }
 
-  private interface Foo {}
-  private interface Bar {}
   interface Event {}
-  public class MyEvent implements Event {}
-  public class GenericEvent<T> implements Event, ReifiedEvent<T> {
-    private final TypeToken<T> type;
-
-    GenericEvent(final Class<T> type) {
-      this.type = TypeToken.of(type);
-    }
-
-    @Override
-    public @NonNull TypeToken<T> type() {
-      return this.type;
-    }
-  }
   interface Listener {}
 
   public class MyListener implements Listener {
-    final boolean[] result = new boolean[3];
-
-    void reset() {
-      for(int i = 0; i < this.result.length; i++) {
-        this.result[i] = false;
-      }
-    }
-
+    // string does not extend Event, so attempting
+    // to register this listener should throw an error
     @Subscribe
-    public void event(final MyEvent event) {
-      this.result[0] = true;
-    }
-
-    @Subscribe
-    public void foo(final GenericEvent<Foo> event) {
-      this.result[1] = true;
-    }
-
-    @Subscribe
-    public void bar(final GenericEvent<Bar> event) {
-      this.result[2] = true;
+    public void error(final String string) {
+      System.out.println("hello " + string);
     }
   }
 }

@@ -31,8 +31,6 @@ import net.kyori.event.ReifiedEvent;
 import net.kyori.event.method.annotation.DefaultMethodScanner;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -47,7 +45,6 @@ import java.util.function.BiConsumer;
  * @param <L> the listener type
  */
 public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscriptionAdapter<L> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SimpleMethodSubscriptionAdapter.class);
   private final EventBus<E> bus;
   private final EventExecutor.Factory<E, L> factory;
   private final MethodScanner<L> methodScanner;
@@ -75,24 +72,41 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
   @SuppressWarnings("unchecked")
   private void findSubscribers(final @NonNull L listener, final BiConsumer<@NonNull Class<? extends E>, @NonNull EventSubscriber<E>> consumer) {
     for(final Method method : listener.getClass().getDeclaredMethods()) {
-      if (method.getParameterCount() != 1) {
-        continue;
-      }
       if(!this.methodScanner.shouldRegister(listener, method)) {
         continue;
+      }
+      if (method.getParameterCount() != 1) {
+        throw new SubscriberGenerationException("Unable to create an event subscriber for method '" + method + "'. Method must have only one parameter.");
+      }
+      final Class<?> methodParameterType = method.getParameterTypes()[0];
+      if (!this.bus.eventType().isAssignableFrom(methodParameterType)) {
+        throw new SubscriberGenerationException("Unable to create an event subscriber for method '" + method + "'. " +
+          "Method parameter type '" + methodParameterType + "' does not extend event type '" + this.bus.eventType() + '\'');
       }
       final EventExecutor<E, L> executor;
       try {
         executor = this.factory.create(listener, method);
       } catch(final Exception e) {
-        LOGGER.error("Encountered an exception while creating an event subscriber for method '" + method + '\'', e);
-        continue;
+        throw new SubscriberGenerationException("Encountered an exception while creating an event subscriber for method '" + method + '\'', e);
       }
 
-      final Class<? extends E> eventClass = (Class<E>) method.getParameterTypes()[0];
+      final Class<? extends E> eventClass = (Class<? extends E>) methodParameterType;
       final PostOrder postOrder = this.methodScanner.postOrder(listener, method);
       final boolean consumeCancelled = this.methodScanner.consumeCancelledEvents(listener, method);
       consumer.accept(eventClass, new MethodEventSubscriber<>(eventClass, method, executor, listener, postOrder, consumeCancelled));
+    }
+  }
+
+  /**
+   * Exception thrown when a {@link EventSubscriber} cannot be generated for a
+   * {@link Method} at runtime.
+   */
+  public static final class SubscriberGenerationException extends RuntimeException {
+    SubscriberGenerationException(final String message) {
+      super(message);
+    }
+    SubscriberGenerationException(final String message, final Throwable cause) {
+      super(message, cause);
     }
   }
 

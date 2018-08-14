@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MethodAdapterPostOrderTest {
   private final List<Integer> results = new ArrayList<>();
-  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
   private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>());
 
   @Test

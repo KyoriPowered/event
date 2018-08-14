@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class Rx1AdapterTest {
-  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
   private final Rx1SubscriptionAdapter<Object> rx1Adapter = new SimpleRx1SubscriptionAdapter<>(this.bus);
 
   @Test

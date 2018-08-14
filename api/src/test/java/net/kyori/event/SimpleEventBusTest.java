@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SimpleEventBusTest {
-  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
 
   @Test
   void testListener() throws PostResult.CompositeException {

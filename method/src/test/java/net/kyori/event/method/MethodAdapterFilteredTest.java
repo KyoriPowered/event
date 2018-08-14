@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MethodAdapterFilteredTest {
   private final AtomicInteger result = new AtomicInteger();
-  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
   private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>(), new FilteredMethodScanner<>());
 
   @Test

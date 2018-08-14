@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class SubTypeEventBusTest {
-  private final EventBus<Number> bus = new SimpleEventBus<>();
+  private final EventBus<Number> bus = new SimpleEventBus<>(Number.class);
 
   @Test
   void testSubTypes() throws PostResult.CompositeException {
