@@ -23,12 +23,14 @@
  */
 package net.kyori.event;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.function.Predicate;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A simple implementation of an event bus.
@@ -38,39 +40,12 @@ public class SimpleEventBus<E> implements EventBus<E> {
   private final SubscriberRegistry<E> registry = new SubscriberRegistry<>();
 
   public SimpleEventBus(final @NonNull Class<E> type) {
-    this.type = type;
+    this.type = requireNonNull(type, "type");
   }
 
   @Override
-  public <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
-    Preconditions.checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
-    this.registry.register(clazz, subscriber);
-  }
-
-  @Override
-  public void unregister(final @NonNull EventSubscriber<?> subscriber) {
-    this.registry.unregister(subscriber);
-  }
-
-  @Override
-  public void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate) {
-    this.registry.unregisterMatching(predicate);
-  }
-
-  @Override
-  public void unregisterAll() {
-    this.registry.unregisterAll();
-  }
-
-  @Override
-  public @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
-    return this.registry.subscribers();
-  }
-
-  @Override
-  public <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz) {
-    Preconditions.checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
-    return !this.registry.subscribers(clazz).isEmpty();
+  public @NonNull Class<E> eventType() {
+    return this.type;
   }
 
   @Override
@@ -101,7 +76,34 @@ public class SimpleEventBus<E> implements EventBus<E> {
   }
 
   @Override
-  public @NonNull Class<E> eventType() {
-    return this.type;
+  public <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
+    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
+    this.registry.register(clazz, subscriber);
+  }
+
+  @Override
+  public void unregister(final @NonNull EventSubscriber<?> subscriber) {
+    this.registry.unregister(subscriber);
+  }
+
+  @Override
+  public void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate) {
+    this.registry.unregisterMatching(predicate);
+  }
+
+  @Override
+  public void unregisterAll() {
+    this.registry.unregisterAll();
+  }
+
+  @Override
+  public <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz) {
+    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
+    return !this.registry.subscribers(clazz).isEmpty();
+  }
+
+  @Override
+  public @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
+    return this.registry.subscribers();
   }
 }

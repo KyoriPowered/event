@@ -40,6 +40,23 @@ import java.util.function.Predicate;
  */
 public interface EventBus<E> {
   /**
+   * Gets the event type of the bus.
+   *
+   * <p>This is represented by the <code>E</code> type parameter.</p>
+   *
+   * @return the event type
+   */
+  @NonNull Class<E> eventType();
+
+  /**
+   * Posts an event to all registered subscribers.
+   *
+   * @param event the event
+   * @return the post result of the operation
+   */
+  @NonNull PostResult post(final @NonNull E event);
+
+  /**
    * Registers the given {@code subscriber} to receive events.
    *
    * @param clazz the registered type. the subscriber will only receive events which can be casted to this type.
@@ -68,17 +85,6 @@ public interface EventBus<E> {
   void unregisterAll();
 
   /**
-   * Gets an immutable multimap containing all of the subscribers
-   * currently registered.
-   *
-   * <p>Each subscriber is mapped to the type defined when it was
-   * initially {@link #register(Class, EventSubscriber) registered}.</p>
-   *
-   * @return a multimap of the current subscribers
-   */
-  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
-
-  /**
    * Determines whether or not the specified event has subscribers.
    *
    * @param clazz the event clazz
@@ -88,19 +94,13 @@ public interface EventBus<E> {
   <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
 
   /**
-   * Posts an event to all registered subscribers.
+   * Gets an immutable multimap containing all of the subscribers
+   * currently registered.
    *
-   * @param event the event
-   * @return the post result of the operation
+   * <p>Each subscriber is mapped to the type defined when it was
+   * initially {@link #register(Class, EventSubscriber) registered}.</p>
+   *
+   * @return a multimap of the current subscribers
    */
-  @NonNull PostResult post(final @NonNull E event);
-
-  /**
-   * Gets the event type of the bus.
-   *
-   * <p>This is represented by the <code>E</code> type parameter.</p>
-   *
-   * @return the event type
-   */
-  @NonNull Class<E> eventType();
+  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
 }
