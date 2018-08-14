@@ -6,5 +6,9 @@
 /method/out/
 /method-asm/build/
 /method-asm/out/
+/rx-1/build/
+/rx-1/out/
+/rx-2/build/
+/rx-2/out/
 /run/
 /*.iml
