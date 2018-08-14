@@ -21,32 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.rx2;
 
+import io.reactivex.disposables.Disposable;
 import net.kyori.event.EventBus;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.kyori.event.SimpleEventBus;
+import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Extension of {@link EventBus} which supports defining event subscribers as methods in a class.
- *
- * @param <E> the event type
- * @param <L> the listener type
- */
-public interface MethodEventBus<E, L> extends EventBus<E> {
-  /**
-   * Registers all methods determined to be {@link MethodScanner#shouldRegister(Object, Method) valid}
-   * on the {@code listener} to receive events.
-   *
-   * @param listener the listener
-   */
-  void register(final @NonNull L listener);
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-  /**
-   * Unregisters all methods on a registered {@code listener}.
-   *
-   * @param listener the listener
-   */
-  void unregister(final @NonNull L listener);
+class Rx2AdapterTest {
+  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final Rx2SubscriptionAdapter<Object> rx1Adapter = new SimpleRx2SubscriptionAdapter<>(this.bus);
+
+  @Test
+  void test() {
+    final AtomicInteger acks = new AtomicInteger();
+    final Disposable subscription = this.rx1Adapter.flowable(TestEvent.class)
+      .subscribe(event -> acks.incrementAndGet());
+    for(int i = 0; i < 3; i++) {
+      this.bus.post((TestEvent) () -> "purple");
+    }
+    assertEquals(3, acks.get());
+    subscription.dispose();
+    for(int i = 0; i < 3; i++) {
+      this.bus.post((TestEvent) () -> "red");
+    }
+    assertEquals(3, acks.get());
+  }
+
+  public interface TestEvent {
+    String color();
+  }
 }

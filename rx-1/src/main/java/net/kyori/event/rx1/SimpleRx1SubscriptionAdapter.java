@@ -21,32 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.rx1;
 
-import net.kyori.event.SimpleEventBus;
+import net.kyori.event.EventBus;
+import net.kyori.event.EventSubscriber;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import rx.Emitter;
+import rx.Observable;
+import rx.functions.Action1;
 
 /**
- * A simple implementation of a method event bus.
+ * A simple implementation of a RxJava 1 subscription adapter.
+ *
+ * @param <E> the event type
  */
-public class SimpleMethodEventBus<E, L> extends SimpleEventBus<E> implements MethodEventBus<E, L> {
-  private final MethodEventSubscriberFactory<E, L> factory;
+public class SimpleRx1SubscriptionAdapter<E> implements Rx1SubscriptionAdapter<E> {
+  private final EventBus<E> bus;
 
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this.factory = new MethodEventSubscriberFactory<>(factory);
-  }
-
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull MethodScanner<L> methodScanner) {
-    this.factory = new MethodEventSubscriberFactory<>(factory, methodScanner);
+  public SimpleRx1SubscriptionAdapter(final @NonNull EventBus<E> bus) {
+    this.bus = bus;
   }
 
   @Override
-  public void register(final @NonNull L listener) {
-    this.factory.findSubscribers(listener, this::register);
+  public <T extends E> @NonNull Observable<T> observable(final @NonNull Class<T> event) {
+    return this.observable(emitter -> {
+      final EventSubscriber<T> subscriber = e -> {
+        try {
+          emitter.onNext(e);
+        } catch(final Throwable t) {
+          emitter.onError(t);
+        }
+      };
+      this.bus.register(event, subscriber);
+      emitter.setCancellation(() -> this.bus.unregister(subscriber));
+    });
   }
 
-  @Override
-  public void unregister(final @NonNull L listener) {
-    this.unregisterMatching(h -> h instanceof MethodEventSubscriber && ((MethodEventSubscriber) h).listener() == listener);
+  /**
+   * Creates an observable for {@code event}.
+   *
+   * @param emitter the emitter
+   * @param <T> the event type
+   * @return an observable
+   */
+  protected <T extends E> @NonNull Observable<T> observable(final @NonNull Action1<Emitter<T>> emitter) {
+    return Observable.create(emitter, Emitter.BackpressureMode.BUFFER);
   }
 }

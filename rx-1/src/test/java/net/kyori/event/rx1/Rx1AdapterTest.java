@@ -23,6 +23,8 @@
  */
 package net.kyori.event.rx1;
 
+import net.kyori.event.EventBus;
+import net.kyori.event.SimpleEventBus;
 import org.junit.jupiter.api.Test;
 import rx.Subscription;
 
@@ -30,20 +32,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class Rx1EventBusTest {
+class Rx1AdapterTest {
+  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final Rx1SubscriptionAdapter<Object> rx1Adapter = new SimpleRx1SubscriptionAdapter<>(this.bus);
+
   @Test
   void test() {
     final AtomicInteger acks = new AtomicInteger();
-    final Rx1EventBus<Object> bus = new Rx1EventBus<>();
-    final Subscription subscription = bus.observable(TestEvent.class)
+    final Subscription subscription = this.rx1Adapter.observable(TestEvent.class)
       .subscribe(event -> acks.incrementAndGet());
     for(int i = 0; i < 3; i++) {
-      bus.post((TestEvent) () -> "purple");
+      this.bus.post((TestEvent) () -> "purple");
     }
     assertEquals(3, acks.get());
     subscription.unsubscribe();
     for(int i = 0; i < 3; i++) {
-      bus.post((TestEvent) () -> "red");
+      this.bus.post((TestEvent) () -> "red");
     }
     assertEquals(3, acks.get());
   }
