@@ -23,10 +23,12 @@
  */
 package net.kyori.event;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -34,7 +36,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Encapsulates the outcome of a {@link EventBus#post(Object)} call.
  */
 public final class PostResult {
-  private static final PostResult SUCCESS = new PostResult(ImmutableList.of());
+  private static final PostResult SUCCESS = new PostResult(Collections.emptyMap());
 
   /**
    * Marks that no exceptions were thrown by subscribers.
@@ -51,14 +53,14 @@ public final class PostResult {
    * @param exceptions the exceptions that were thrown
    * @return a {@link PostResult} indicating failure
    */
-  public static @NonNull PostResult failure(final @NonNull List<Throwable> exceptions) {
+  public static @NonNull PostResult failure(final @NonNull Map<EventSubscriber<?>, Throwable> exceptions) {
     checkState(!exceptions.isEmpty(), "no exceptions present");
-    return new PostResult(ImmutableList.copyOf(exceptions));
+    return new PostResult(ImmutableMap.copyOf(exceptions));
   }
 
-  private final List<Throwable> exceptions;
+  private final Map<EventSubscriber<?>, Throwable> exceptions;
 
-  private PostResult(final @NonNull List<Throwable> exceptions) {
+  private PostResult(final @NonNull Map<EventSubscriber<?>, Throwable> exceptions) {
     this.exceptions = exceptions;
   }
 
@@ -76,7 +78,66 @@ public final class PostResult {
    *
    * @return the exceptions thrown by subscribers
    */
-  public @NonNull List<Throwable> exceptions() {
+  public @NonNull Map<EventSubscriber<?>, Throwable> exceptions() {
     return this.exceptions;
+  }
+
+  /**
+   * Raises a {@link CompositeException} if the posting was not
+   * {@link #wasSuccessful() successful}.
+   *
+   * @throws CompositeException if posting was not successful
+   */
+  public void raise() throws CompositeException {
+    if(!this.wasSuccessful()) {
+      throw new CompositeException(this);
+    }
+  }
+
+  @Override
+  public String toString() {
+    if(this.wasSuccessful()) {
+      return MoreObjects.toStringHelper(this)
+        .add("type", "success")
+        .toString();
+    } else {
+      return MoreObjects.toStringHelper(this)
+        .add("type", "failure")
+        .add("exceptions", this.exceptions().values())
+        .toString();
+    }
+  }
+
+  /**
+   * Exception encapsulating a combined {@link #failure(Map) failure}.
+   */
+  public static final class CompositeException extends Exception {
+    private final PostResult result;
+
+    CompositeException(final @NonNull PostResult result) {
+      super("Exceptions occurred whilst posting to subscribers");
+      this.result = result;
+    }
+
+    /**
+     * Gets the result that created this composite exception.
+     *
+     * @return the result
+     */
+    public @NonNull PostResult result() {
+      return this.result;
+    }
+
+    /**
+     * Prints all of the stack traces involved in the composite exception.
+     *
+     * @see Exception#printStackTrace()
+     */
+    public void printAllStackTraces() {
+      this.printStackTrace();
+      for(final Throwable exception : this.result.exceptions().values()) {
+        exception.printStackTrace();
+      }
+    }
   }
 }

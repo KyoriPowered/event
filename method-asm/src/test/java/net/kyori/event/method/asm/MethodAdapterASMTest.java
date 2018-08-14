@@ -21,9 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.method.asm;
 
 import net.kyori.event.Cancellable;
+import net.kyori.event.EventBus;
+import net.kyori.event.PostResult;
+import net.kyori.event.SimpleEventBus;
+import net.kyori.event.method.MethodSubscriptionAdapter;
+import net.kyori.event.method.SimpleMethodSubscriptionAdapter;
 import net.kyori.event.method.annotation.IgnoreCancelled;
 import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
@@ -32,28 +37,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MethodEventBusTest {
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
+class MethodAdapterASMTest {
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
+  private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new ASMEventExecutorFactory<>());
 
   @Test
-  void testListener() {
+  void testListener() throws PostResult.CompositeException {
     final TestListener listener = new TestListener();
-    this.bus.register(listener);
+    this.methodAdapter.register(listener);
     final TestEvent event = new TestEvent();
     event.cancelled(true);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(0, event.count.get());
     event.cancelled(false);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     final TestListenerWithCancelled listenerWithCancelled = new TestListenerWithCancelled();
-    this.bus.register(listenerWithCancelled);
+    this.methodAdapter.register(listenerWithCancelled);
     event.cancelled(false);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(3, event.count.get());
-    this.bus.unregister(listener);
-    this.bus.unregister(listenerWithCancelled);
+    this.methodAdapter.unregister(listener);
+    this.methodAdapter.unregister(listenerWithCancelled);
     event.cancelled(false);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(0, event.count.get());
   }
 

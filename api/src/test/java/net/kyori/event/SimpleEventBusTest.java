@@ -33,10 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SimpleEventBusTest {
-  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
 
   @Test
-  void testListener() {
+  void testListener() throws PostResult.CompositeException {
     final TestEvent event = new TestEvent();
 
     assertFalse(this.bus.hasSubscribers(TestEvent.class));
@@ -56,16 +56,16 @@ class SimpleEventBusTest {
     assertTrue(this.bus.hasSubscribers(TestEvent.class));
 
     event.cancelled(true);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(0, event.count.get());
 
     this.bus.register(TestEvent.class, e -> e.count.incrementAndGet());
 
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(1, event.count.get());
 
     event.cancelled(false);
-    this.bus.post(event);
+    this.bus.post(event).raise();
     assertEquals(3, event.count.get());
   }
 

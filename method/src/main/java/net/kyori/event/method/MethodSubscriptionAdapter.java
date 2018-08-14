@@ -21,35 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.method;
 
-import org.junit.jupiter.api.Test;
+import net.kyori.event.EventBus;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.lang.reflect.Method;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+/**
+ * A subscription adapter for {@link EventBus} which supports defining
+ * event subscribers as methods in a class.
+ *
+ * @param <L> the listener type
+ */
+public interface MethodSubscriptionAdapter<L> {
+  /**
+   * Registers all methods determined to be {@link MethodScanner#shouldRegister(Object, Method) valid}
+   * on the {@code listener} to receive events.
+   *
+   * @param listener the listener
+   */
+  void register(final @NonNull L listener);
 
-class SubTypeEventBusTest {
-  private final EventBus<Number> bus = new SimpleEventBus<>(Number.class);
-
-  @Test
-  void testSubTypes() throws PostResult.CompositeException {
-    final AtomicReference<boolean[]> calls = new AtomicReference<>();
-
-    this.bus.register(Integer.class, event -> calls.get()[0] = true);
-    this.bus.register(Number.class, event -> calls.get()[1] = true);
-    this.bus.register(Double.class, event -> calls.get()[2] = true);
-
-    calls.set(new boolean[3]);
-    this.bus.post(1.34f).raise();
-    assertArrayEquals(calls.get(), new boolean[]{false, true, false});
-
-    calls.set(new boolean[3]);
-    this.bus.post(13).raise();
-    assertArrayEquals(calls.get(), new boolean[]{true, true, false});
-
-    calls.set(new boolean[3]);
-    this.bus.post(3.14d).raise();
-    assertArrayEquals(calls.get(), new boolean[]{false, true, true});
-  }
+  /**
+   * Unregisters all methods on a registered {@code listener}.
+   *
+   * @param listener the listener
+   */
+  void unregister(final @NonNull L listener);
 }

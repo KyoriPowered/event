@@ -24,7 +24,10 @@
 package net.kyori.event.method;
 
 import com.google.common.reflect.TypeToken;
+import net.kyori.event.EventBus;
+import net.kyori.event.PostResult;
 import net.kyori.event.ReifiedEvent;
+import net.kyori.event.SimpleEventBus;
 import net.kyori.event.method.annotation.Subscribe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
@@ -32,32 +35,33 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MethodEventBusTestWithType {
-  private final MethodEventBus<Event, Listener> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
+class MethodAdapterReifiedEventTest {
+  private final EventBus<Event> bus = new SimpleEventBus<>(Event.class);
+  private final MethodSubscriptionAdapter<Listener> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>());
 
   @Test
-  void testListener() {
+  void testListener() throws PostResult.CompositeException {
     final MyListener listener = new MyListener();
-    this.bus.register(listener);
+    this.methodAdapter.register(listener);
     // first post should set result[0] to true
-    this.bus.post(new MyEvent());
+    this.bus.post(new MyEvent()).raise();
     assertTrue(listener.result[0]);
     assertFalse(listener.result[1]);
     assertFalse(listener.result[2]);
     listener.reset();
-    this.bus.post(new GenericEvent<>(Foo.class));
+    this.bus.post(new GenericEvent<>(Foo.class)).raise();
     assertFalse(listener.result[0]);
     assertTrue(listener.result[1]);
     assertFalse(listener.result[2]);
     listener.reset();
-    this.bus.post(new GenericEvent<>(Bar.class));
+    this.bus.post(new GenericEvent<>(Bar.class)).raise();
     assertFalse(listener.result[0]);
     assertFalse(listener.result[1]);
     assertTrue(listener.result[2]);
-    this.bus.unregister(listener);
+    this.methodAdapter.unregister(listener);
     listener.result[0] = false;
     // second post should not, as the listener has been unregistered
-    this.bus.post(new MyEvent());
+    this.bus.post(new MyEvent()).raise();
     assertFalse(listener.result[0]);
   }
 

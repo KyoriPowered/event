@@ -21,44 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method.annotation;
+package net.kyori.event.rx1;
 
-import net.kyori.event.PostOrder;
-import net.kyori.event.method.MethodScanner;
+import net.kyori.event.EventBus;
+import net.kyori.event.EventSubscriber;
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.lang.reflect.Method;
+import rx.Emitter;
+import rx.Observable;
+import rx.functions.Action1;
 
 /**
- * Implementation of {@link MethodScanner} using the built-in
- * {@link Subscribe} and {@link IgnoreCancelled} annotations.
+ * A simple implementation of a RxJava 1 subscription adapter.
  *
- * @param <L> the listener type
+ * @param <E> the event type
  */
-public class DefaultMethodScanner<L> implements MethodScanner<L> {
-  private static final DefaultMethodScanner INSTANCE = new DefaultMethodScanner();
+public class SimpleRx1SubscriptionAdapter<E> implements Rx1SubscriptionAdapter<E> {
+  private final EventBus<E> bus;
 
-  @SuppressWarnings("unchecked")
-  public static <L> @NonNull MethodScanner<L> get() {
-    return (MethodScanner<L>) INSTANCE;
-  }
-
-  // Allow subclasses
-  protected DefaultMethodScanner() {
+  public SimpleRx1SubscriptionAdapter(final @NonNull EventBus<E> bus) {
+    this.bus = bus;
   }
 
   @Override
-  public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
-    return method.getAnnotation(Subscribe.class) != null;
+  public <T extends E> @NonNull Observable<T> observable(final @NonNull Class<T> event) {
+    return this.observable(emitter -> {
+      final EventSubscriber<T> subscriber = e -> {
+        try {
+          emitter.onNext(e);
+        } catch(final Throwable t) {
+          emitter.onError(t);
+        }
+      };
+      this.bus.register(event, subscriber);
+      emitter.setCancellation(() -> this.bus.unregister(subscriber));
+    });
   }
 
-  @Override
-  public @NonNull PostOrder postOrder(final @NonNull L listener, final @NonNull Method method) {
-    return method.getAnnotation(Subscribe.class).value();
-  }
-
-  @Override
-  public boolean consumeCancelledEvents(final @NonNull L listener, final @NonNull Method method) {
-    return !method.isAnnotationPresent(IgnoreCancelled.class);
+  /**
+   * Creates an observable for {@code event}.
+   *
+   * @param emitter the emitter
+   * @param <T> the event type
+   * @return an observable
+   */
+  protected <T extends E> @NonNull Observable<T> observable(final @NonNull Action1<Emitter<T>> emitter) {
+    return Observable.create(emitter, Emitter.BackpressureMode.BUFFER);
   }
 }

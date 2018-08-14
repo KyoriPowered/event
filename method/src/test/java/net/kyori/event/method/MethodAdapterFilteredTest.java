@@ -23,8 +23,9 @@
  */
 package net.kyori.event.method;
 
-import com.google.common.collect.Lists;
-import net.kyori.event.PostOrder;
+import net.kyori.event.EventBus;
+import net.kyori.event.PostResult;
+import net.kyori.event.SimpleEventBus;
 import net.kyori.event.method.annotation.DefaultMethodScanner;
 import net.kyori.event.method.annotation.Subscribe;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -33,39 +34,44 @@ import org.junit.jupiter.api.Test;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MethodEventBusPostOrderTest {
-  private final List<Integer> results = new ArrayList<>();
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
+class MethodAdapterFilteredTest {
+  private final AtomicInteger result = new AtomicInteger();
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
+  private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>(), new FilteredMethodScanner<>());
 
   @Test
-  void testListener() {
-    this.bus.register(new TestListener());
-    this.bus.post(new TestEvent());
-    assertEquals(Lists.newArrayList(1, 2, 3), this.results);
+  void testListener() throws PostResult.CompositeException {
+    this.methodAdapter.register(new TestListener());
+    this.bus.post(new TestEvent()).raise();
+    assertEquals(1, this.result.get());
   }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface SomeFilter {}
 
   public final class TestEvent {}
 
+  public final class FilteredMethodScanner<L> extends DefaultMethodScanner<L> {
+    @Override
+    public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
+      return super.shouldRegister(listener, method) && method.isAnnotationPresent(MethodAdapterFilteredTest.SomeFilter.class);
+    }
+  }
+
   public class TestListener {
-    @Subscribe(value = PostOrder.EARLY)
-    public void early(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.results.add(1);
+    @Subscribe
+    public void withoutFilter(final TestEvent event) {
+      MethodAdapterFilteredTest.this.result.getAndIncrement();
     }
 
-    @Subscribe(value = PostOrder.NORMAL)
-    public void normal(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.results.add(2);
-    }
-
-    @Subscribe(value = PostOrder.LATE)
-    public void late(final TestEvent event) {
-      MethodEventBusPostOrderTest.this.results.add(3);
+    @SomeFilter
+    @Subscribe
+    public void withFilter(final TestEvent event) {
+      MethodAdapterFilteredTest.this.result.getAndIncrement();
     }
   }
 }

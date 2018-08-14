@@ -23,61 +23,35 @@
  */
 package net.kyori.event;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.function.Predicate;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
+
 /**
  * A simple implementation of an event bus.
  */
 public class SimpleEventBus<E> implements EventBus<E> {
+  private final Class<E> type;
   private final SubscriberRegistry<E> registry = new SubscriberRegistry<>();
 
-  @Override
-  public <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
-    this.registry.register(clazz, subscriber);
+  public SimpleEventBus(final @NonNull Class<E> type) {
+    this.type = requireNonNull(type, "type");
   }
 
   @Override
-  public void unregister(final @NonNull EventSubscriber<?> subscriber) {
-    this.registry.unregister(subscriber);
-  }
-
-  /**
-   * Unregisters all subscribers matching the {@code predicate}.
-   *
-   * @param predicate the predicate to test subscribers for removal
-   */
-  protected void unregisterMatching(final @NonNull Predicate<EventSubscriber<?>> predicate) {
-    this.registry.unregisterMatching(predicate);
-  }
-
-  /**
-   * Unregisters all subscribers.
-   */
-  protected void unregisterAll() {
-    this.registry.unregisterAll();
-  }
-
-  /**
-   * Gets an immutable multimap containing all of the subscribers
-   * currently registered.
-   *
-   * <p>Each subscriber is mapped to the type defined when it was
-   * initially {@link #register(Class, EventSubscriber) registered}.</p>
-   *
-   * @return a multimap of the current subscribers
-   */
-  protected @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
-    return this.registry.subscribers();
+  public @NonNull Class<E> eventType() {
+    return this.type;
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public @NonNull PostResult post(final @NonNull E event) {
-    ImmutableList.Builder<Throwable> exceptions = null; // save on an allocation
+    ImmutableMap.Builder<EventSubscriber<?>, Throwable> exceptions = null; // save on an allocation
     for(final EventSubscriber subscriber : this.registry.subscribers(event)) {
       if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !subscriber.consumeCancelledEvents())) {
         continue;
@@ -89,9 +63,9 @@ public class SimpleEventBus<E> implements EventBus<E> {
         subscriber.invoke(event);
       } catch(final Throwable e) {
         if(exceptions == null) {
-          exceptions = ImmutableList.builder();
+          exceptions = ImmutableMap.builder();
         }
-        exceptions.add(e);
+        exceptions.put(subscriber, e);
       }
     }
     if(exceptions == null) {
@@ -102,7 +76,34 @@ public class SimpleEventBus<E> implements EventBus<E> {
   }
 
   @Override
+  public <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
+    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
+    this.registry.register(clazz, subscriber);
+  }
+
+  @Override
+  public void unregister(final @NonNull EventSubscriber<?> subscriber) {
+    this.registry.unregister(subscriber);
+  }
+
+  @Override
+  public void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate) {
+    this.registry.unregisterMatching(predicate);
+  }
+
+  @Override
+  public void unregisterAll() {
+    this.registry.unregisterAll();
+  }
+
+  @Override
   public <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz) {
+    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
     return !this.registry.subscribers(clazz).isEmpty();
+  }
+
+  @Override
+  public @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
+    return this.registry.subscribers();
   }
 }

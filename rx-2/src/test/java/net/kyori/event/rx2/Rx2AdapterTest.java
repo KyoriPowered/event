@@ -21,44 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.rx2;
 
+import io.reactivex.disposables.Disposable;
+import net.kyori.event.EventBus;
+import net.kyori.event.PostResult;
+import net.kyori.event.SimpleEventBus;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.concurrent.atomic.AtomicInteger;
 
-class PostResultEventBusTest {
-  private final EventBus<Integer> bus = new SimpleEventBus<>(Integer.class);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class Rx2AdapterTest {
+  private final EventBus<Object> bus = new SimpleEventBus<>(Object.class);
+  private final Rx2SubscriptionAdapter<Object> rx1Adapter = new SimpleRx2SubscriptionAdapter<>(this.bus);
 
   @Test
-  void testPostResult() {
-    this.bus.register(Integer.class, event -> {
-      if(event % 5 == 0) {
-        throw new Throwable();
-      }
-    });
-    this.bus.register(Integer.class, event -> {
-      if(event % 2 == 0) {
-        throw new Exception();
-      }
-    });
+  void test() throws PostResult.CompositeException {
+    final AtomicInteger acks = new AtomicInteger();
+    final Disposable subscription = this.rx1Adapter.flowable(TestEvent.class)
+      .subscribe(event -> acks.incrementAndGet());
+    for(int i = 0; i < 3; i++) {
+      this.bus.post((TestEvent) () -> "purple").raise();
+    }
+    assertEquals(3, acks.get());
+    subscription.dispose();
+    for(int i = 0; i < 3; i++) {
+      this.bus.post((TestEvent) () -> "red").raise();
+    }
+    assertEquals(3, acks.get());
+  }
 
-    final PostResult result1 = this.bus.post(7);
-    assertTrue(result1.wasSuccessful());
-    assertDoesNotThrow(result1::raise);
-
-    final PostResult result2 = this.bus.post(5);
-    assertFalse(result2.wasSuccessful());
-    assertThrows(PostResult.CompositeException.class, result2::raise);
-    assertEquals(1, result2.exceptions().size());
-    assertEquals(Throwable.class, result2.exceptions().values().iterator().next().getClass());
-
-    final PostResult result3 = this.bus.post(10);
-    assertFalse(result3.wasSuccessful());
-    assertEquals(2, result3.exceptions().size());
+  public interface TestEvent {
+    String color();
   }
 }

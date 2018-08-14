@@ -21,35 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event;
+package net.kyori.event.rx2;
 
-import org.junit.jupiter.api.Test;
+import io.reactivex.Flowable;
+import net.kyori.event.EventBus;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
-class SubTypeEventBusTest {
-  private final EventBus<Number> bus = new SimpleEventBus<>(Number.class);
-
-  @Test
-  void testSubTypes() throws PostResult.CompositeException {
-    final AtomicReference<boolean[]> calls = new AtomicReference<>();
-
-    this.bus.register(Integer.class, event -> calls.get()[0] = true);
-    this.bus.register(Number.class, event -> calls.get()[1] = true);
-    this.bus.register(Double.class, event -> calls.get()[2] = true);
-
-    calls.set(new boolean[3]);
-    this.bus.post(1.34f).raise();
-    assertArrayEquals(calls.get(), new boolean[]{false, true, false});
-
-    calls.set(new boolean[3]);
-    this.bus.post(13).raise();
-    assertArrayEquals(calls.get(), new boolean[]{true, true, false});
-
-    calls.set(new boolean[3]);
-    this.bus.post(3.14d).raise();
-    assertArrayEquals(calls.get(), new boolean[]{false, true, true});
-  }
+/**
+ * A subscription adapter for {@link EventBus} which supports creating
+ * {@link Flowable}s for RxJava 2.
+ *
+ * @param <E> the event type
+ */
+public interface Rx2SubscriptionAdapter<E> {
+  /**
+   * Creates a flowable for {@code event}.
+   *
+   * @param event the event
+   * @param <T> the event type
+   * @return a flowable
+   */
+  <T extends E> @NonNull Flowable<T> flowable(final @NonNull Class<T> event);
 }

@@ -68,7 +68,7 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
     this(ASMEventExecutorFactory.class.getClassLoader());
   }
 
-  public ASMEventExecutorFactory(@NonNull ClassLoader parent) {
+  public ASMEventExecutorFactory(final @NonNull ClassLoader parent) {
     this.eventExecutorClassLoader = new DefiningClassLoader(parent);
     this.cache = CacheBuilder.newBuilder()
       .initialCapacity(16)
@@ -104,7 +104,7 @@ public final class ASMEventExecutorFactory<E, L> implements EventExecutor.Factor
           mv.visitEnd();
         }
         cw.visitEnd();
-        return eventExecutorClassLoader.defineClass(className, cw.toByteArray());
+        return this.eventExecutorClassLoader.defineClass(className, cw.toByteArray());
       }));
   }
 

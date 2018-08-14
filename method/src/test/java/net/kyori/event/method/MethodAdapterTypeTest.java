@@ -23,30 +23,32 @@
  */
 package net.kyori.event.method;
 
+import net.kyori.event.EventBus;
 import net.kyori.event.SimpleEventBus;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.kyori.event.method.annotation.Subscribe;
+import org.junit.jupiter.api.Test;
 
-/**
- * A simple implementation of a method event bus.
- */
-public class SimpleMethodEventBus<E, L> extends SimpleEventBus<E> implements MethodEventBus<E, L> {
-  private final MethodEventSubscriberFactory<E, L> factory;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory) {
-    this.factory = new MethodEventSubscriberFactory<>(factory);
+class MethodAdapterTypeTest {
+  private final EventBus<Event> bus = new SimpleEventBus<>(Event.class);
+  private final MethodSubscriptionAdapter<Listener> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>());
+
+  @Test
+  void testListener() {
+    final MyListener listener = new MyListener();
+    assertThrows(SimpleMethodSubscriptionAdapter.SubscriberGenerationException.class, () -> this.methodAdapter.register(listener));
   }
 
-  public SimpleMethodEventBus(final EventExecutor.@NonNull Factory<E, L> factory, final @NonNull MethodScanner<L> methodScanner) {
-    this.factory = new MethodEventSubscriberFactory<>(factory, methodScanner);
-  }
+  interface Event {}
+  interface Listener {}
 
-  @Override
-  public void register(final @NonNull L listener) {
-    this.factory.findSubscribers(listener, this::register);
-  }
-
-  @Override
-  public void unregister(final @NonNull L listener) {
-    this.unregisterMatching(h -> h instanceof MethodEventSubscriber && ((MethodEventSubscriber) h).listener() == listener);
+  public class MyListener implements Listener {
+    // string does not extend Event, so attempting
+    // to register this listener should throw an error
+    @Subscribe
+    public void error(final String string) {
+      System.out.println("hello " + string);
+    }
   }
 }

@@ -23,7 +23,10 @@
  */
 package net.kyori.event;
 
+import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.function.Predicate;
 
 /**
  * Base interface of the library, representing an object which accepts
@@ -36,6 +39,23 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @param <E> the event type
  */
 public interface EventBus<E> {
+  /**
+   * Gets the event type of the bus.
+   *
+   * <p>This is represented by the <code>E</code> type parameter.</p>
+   *
+   * @return the event type
+   */
+  @NonNull Class<E> eventType();
+
+  /**
+   * Posts an event to all registered subscribers.
+   *
+   * @param event the event
+   * @return the post result of the operation
+   */
+  @NonNull PostResult post(final @NonNull E event);
+
   /**
    * Registers the given {@code subscriber} to receive events.
    *
@@ -53,12 +73,16 @@ public interface EventBus<E> {
   void unregister(final @NonNull EventSubscriber<?> subscriber);
 
   /**
-   * Posts an event to all registered subscribers.
+   * Unregisters all subscribers matching the {@code predicate}.
    *
-   * @param event the event
-   * @return the post result of the operation
+   * @param predicate the predicate to test subscribers for removal
    */
-  @NonNull PostResult post(final @NonNull E event);
+  void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate);
+
+  /**
+   * Unregisters all subscribers.
+   */
+  void unregisterAll();
 
   /**
    * Determines whether or not the specified event has subscribers.
@@ -68,4 +92,15 @@ public interface EventBus<E> {
    * @param <T> the event type
    */
   <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
+
+  /**
+   * Gets an immutable multimap containing all of the subscribers
+   * currently registered.
+   *
+   * <p>Each subscriber is mapped to the type defined when it was
+   * initially {@link #register(Class, EventSubscriber) registered}.</p>
+   *
+   * @return a multimap of the current subscribers
+   */
+  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
 }
