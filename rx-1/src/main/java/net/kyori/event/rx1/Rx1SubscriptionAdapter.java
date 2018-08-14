@@ -21,34 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.rx2;
+package net.kyori.event.rx1;
 
-import io.reactivex.disposables.Disposable;
-import org.junit.jupiter.api.Test;
+import net.kyori.event.EventBus;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import rx.Observable;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-class Rx2EventBusTest {
-  @Test
-  void test() {
-    final AtomicInteger acks = new AtomicInteger();
-    final Rx2EventBus<Object> bus = new Rx2EventBus<>();
-    final Disposable subscription = bus.flowable(TestEvent.class)
-      .subscribe(event -> acks.incrementAndGet());
-    for(int i = 0; i < 3; i++) {
-      bus.post((TestEvent) () -> "purple");
-    }
-    assertEquals(3, acks.get());
-    subscription.dispose();
-    for(int i = 0; i < 3; i++) {
-      bus.post((TestEvent) () -> "red");
-    }
-    assertEquals(3, acks.get());
-  }
-
-  public interface TestEvent {
-    String color();
-  }
+/**
+ * A subscription adapter for {@link EventBus} which supports creating
+ * {@link Observable}s for RxJava 1.
+ *
+ * @param <E> the event type
+ */
+public interface Rx1SubscriptionAdapter<E> {
+  /**
+   * Creates an observable for {@code event}.
+   *
+   * @param event the event
+   * @param <T> the event type
+   * @return an observable
+   */
+  <T extends E> @NonNull Observable<T> observable(final @NonNull Class<T> event);
 }

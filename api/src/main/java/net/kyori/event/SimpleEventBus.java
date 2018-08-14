@@ -45,32 +45,18 @@ public class SimpleEventBus<E> implements EventBus<E> {
     this.registry.unregister(subscriber);
   }
 
-  /**
-   * Unregisters all subscribers matching the {@code predicate}.
-   *
-   * @param predicate the predicate to test subscribers for removal
-   */
-  protected void unregisterMatching(final @NonNull Predicate<EventSubscriber<?>> predicate) {
+  @Override
+  public void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate) {
     this.registry.unregisterMatching(predicate);
   }
 
-  /**
-   * Unregisters all subscribers.
-   */
-  protected void unregisterAll() {
+  @Override
+  public void unregisterAll() {
     this.registry.unregisterAll();
   }
 
-  /**
-   * Gets an immutable multimap containing all of the subscribers
-   * currently registered.
-   *
-   * <p>Each subscriber is mapped to the type defined when it was
-   * initially {@link #register(Class, EventSubscriber) registered}.</p>
-   *
-   * @return a multimap of the current subscribers
-   */
-  protected @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
+  @Override
+  public @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
     return this.registry.subscribers();
   }
 

@@ -21,30 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.rx1;
+package net.kyori.event.rx2;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.disposables.Disposable;
+import net.kyori.event.EventBus;
 import net.kyori.event.EventSubscriber;
-import net.kyori.event.SimpleEventBus;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import rx.Emitter;
-import rx.Observable;
-import rx.functions.Action1;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * An event bus that can be used with RxJava 1.
+ * A simple implementation of a RxJava 1 subscription adapter.
  *
  * @param <E> the event type
  */
-public class Rx1EventBus<E> extends SimpleEventBus<E> {
-  /**
-   * Creates an observable for {@code event}.
-   *
-   * @param event the event
-   * @param <T> the event type
-   * @return an observable
-   */
-  public <T extends E> @NonNull Observable<T> observable(final @NonNull Class<T> event) {
-    return this.observable(emitter -> {
+public class SimpleRx2SubscriptionAdapter<E> implements Rx2SubscriptionAdapter<E> {
+  private final EventBus<E> bus;
+
+  public SimpleRx2SubscriptionAdapter(final @NonNull EventBus<E> bus) {
+    this.bus = bus;
+  }
+
+  @Override
+  public <T extends E> @NonNull Flowable<T> flowable(final @NonNull Class<T> event) {
+    return this.flowable(emitter -> {
       final EventSubscriber<T> subscriber = e -> {
         try {
           emitter.onNext(e);
@@ -52,19 +55,34 @@ public class Rx1EventBus<E> extends SimpleEventBus<E> {
           emitter.onError(t);
         }
       };
-      this.register(event, subscriber);
-      emitter.setCancellation(() -> this.unregister(subscriber));
+      this.bus.register(event, subscriber);
+      emitter.setDisposable(new Disposable() {
+        private AtomicBoolean disposed = new AtomicBoolean();
+
+        @Override
+        public void dispose() {
+          if(!this.disposed.getAndSet(true)) {
+            SimpleRx2SubscriptionAdapter.this.bus.unregister(subscriber);
+          }
+        }
+
+        @Override
+        public boolean isDisposed() {
+          return this.disposed.get();
+        }
+      });
+
     });
   }
 
   /**
-   * Creates an observable for {@code event}.
+   * Creates a flowable for {@code event}.
    *
    * @param emitter the emitter
    * @param <T> the event type
-   * @return an observable
+   * @return a flowable
    */
-  protected <T extends E> @NonNull Observable<T> observable(final @NonNull Action1<Emitter<T>> emitter) {
-    return Observable.create(emitter, Emitter.BackpressureMode.BUFFER);
+  protected <T extends E> @NonNull Flowable<T> flowable(final @NonNull FlowableOnSubscribe<T> emitter) {
+    return Flowable.create(emitter, BackpressureStrategy.BUFFER);
   }
 }
