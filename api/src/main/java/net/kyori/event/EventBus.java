@@ -23,7 +23,10 @@
  */
 package net.kyori.event;
 
+import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.function.Predicate;
 
 /**
  * Base interface of the library, representing an object which accepts
@@ -51,6 +54,29 @@ public interface EventBus<E> {
    * @param subscriber the subscriber
    */
   void unregister(final @NonNull EventSubscriber<?> subscriber);
+
+  /**
+   * Unregisters all subscribers matching the {@code predicate}.
+   *
+   * @param predicate the predicate to test subscribers for removal
+   */
+  void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate);
+
+  /**
+   * Unregisters all subscribers.
+   */
+  void unregisterAll();
+
+  /**
+   * Gets an immutable multimap containing all of the subscribers
+   * currently registered.
+   *
+   * <p>Each subscriber is mapped to the type defined when it was
+   * initially {@link #register(Class, EventSubscriber) registered}.</p>
+   *
+   * @return a multimap of the current subscribers
+   */
+  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
 
   /**
    * Posts an event to all registered subscribers.

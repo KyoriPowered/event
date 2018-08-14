@@ -1,0 +1,10 @@
+dependencies {
+  compile project(':event-api')
+  compile 'io.reactivex.rxjava2:rxjava:2.2.0'
+}
+
+jar {
+  manifest.attributes(
+    'Automatic-Module-Name': 'net.kyori.event.rx2'
+  )
+}

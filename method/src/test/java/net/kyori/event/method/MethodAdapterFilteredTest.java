@@ -23,68 +23,54 @@
  */
 package net.kyori.event.method;
 
-import net.kyori.event.Cancellable;
-import net.kyori.event.method.annotation.IgnoreCancelled;
+import net.kyori.event.EventBus;
+import net.kyori.event.SimpleEventBus;
+import net.kyori.event.method.annotation.DefaultMethodScanner;
 import net.kyori.event.method.annotation.Subscribe;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MethodEventBusTest {
-  private final MethodEventBus<Object, Object> bus = new SimpleMethodEventBus<>(new MethodHandleEventExecutorFactory<>());
+class MethodAdapterFilteredTest {
+  private final AtomicInteger result = new AtomicInteger();
+  private final EventBus<Object> bus = new SimpleEventBus<>();
+  private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>(), new FilteredMethodScanner<>());
 
   @Test
   void testListener() {
-    final TestListener listener = new TestListener();
-    this.bus.register(listener);
-    final TestEvent event = new TestEvent();
-    event.cancelled(true);
-    this.bus.post(event);
-    assertEquals(0, event.count.get());
-    event.cancelled(false);
-    this.bus.post(event);
-    final TestListenerWithCancelled listenerWithCancelled = new TestListenerWithCancelled();
-    this.bus.register(listenerWithCancelled);
-    event.cancelled(false);
-    this.bus.post(event);
-    assertEquals(3, event.count.get());
-    this.bus.unregister(listener);
-    this.bus.unregister(listenerWithCancelled);
-    event.cancelled(false);
-    this.bus.post(event);
-    assertEquals(0, event.count.get());
+    this.methodAdapter.register(new TestListener());
+    this.bus.post(new TestEvent());
+    assertEquals(1, this.result.get());
   }
 
-  public final class TestEvent extends Cancellable.Impl {
-    final AtomicInteger count = new AtomicInteger(0);
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface SomeFilter {}
 
+  public final class TestEvent {}
+
+  public final class FilteredMethodScanner<L> extends DefaultMethodScanner<L> {
     @Override
-    public void cancelled(final boolean cancelled) {
-      this.cancelled = cancelled;
-      this.count.set(0);
+    public boolean shouldRegister(final @NonNull L listener, final @NonNull Method method) {
+      return super.shouldRegister(listener, method) && method.isAnnotationPresent(MethodAdapterFilteredTest.SomeFilter.class);
     }
   }
 
   public class TestListener {
-    @IgnoreCancelled
     @Subscribe
-    public void event(final TestEvent event) {
-      event.count.incrementAndGet();
+    public void withoutFilter(final TestEvent event) {
+      MethodAdapterFilteredTest.this.result.getAndIncrement();
     }
 
-    @IgnoreCancelled
+    @SomeFilter
     @Subscribe
-    public void cancelledExcluded(final TestEvent event) {
-      event.count.incrementAndGet();
-    }
-  }
-
-  public class TestListenerWithCancelled {
-    @Subscribe
-    public void cancelledIncluded(final TestEvent event) {
-      event.count.incrementAndGet();
+    public void withFilter(final TestEvent event) {
+      MethodAdapterFilteredTest.this.result.getAndIncrement();
     }
   }
 }
