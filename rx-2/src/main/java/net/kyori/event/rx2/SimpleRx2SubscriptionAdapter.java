@@ -57,7 +57,7 @@ public class SimpleRx2SubscriptionAdapter<E> implements Rx2SubscriptionAdapter<E
       };
       this.bus.register(event, subscriber);
       emitter.setDisposable(new Disposable() {
-        private AtomicBoolean disposed = new AtomicBoolean();
+        private final AtomicBoolean disposed = new AtomicBoolean();
 
         @Override
         public void dispose() {
