@@ -25,8 +25,10 @@ package net.kyori.event;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PostResultEventBusTest {
@@ -45,15 +47,18 @@ class PostResultEventBusTest {
       }
     });
 
-    assertTrue(this.bus.post(7).wasSuccessful());
+    final PostResult result1 = this.bus.post(7);
+    assertTrue(result1.wasSuccessful());
+    assertDoesNotThrow(result1::raise);
 
-    final PostResult result1 = this.bus.post(5);
-    assertFalse(result1.wasSuccessful());
-    assertEquals(1, result1.exceptions().size());
-    assertEquals(Throwable.class, result1.exceptions().get(0).getClass());
-
-    final PostResult result2 = this.bus.post(10);
+    final PostResult result2 = this.bus.post(5);
     assertFalse(result2.wasSuccessful());
-    assertEquals(2, result2.exceptions().size());
+    assertThrows(PostResult.CompositeException.class, result2::raise);
+    assertEquals(1, result2.exceptions().size());
+    assertEquals(Throwable.class, result2.exceptions().values().iterator().next().getClass());
+
+    final PostResult result3 = this.bus.post(10);
+    assertFalse(result3.wasSuccessful());
+    assertEquals(2, result3.exceptions().size());
   }
 }

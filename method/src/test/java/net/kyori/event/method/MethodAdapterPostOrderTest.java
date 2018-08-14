@@ -26,6 +26,7 @@ package net.kyori.event.method;
 import com.google.common.collect.Lists;
 import net.kyori.event.EventBus;
 import net.kyori.event.PostOrder;
+import net.kyori.event.PostResult;
 import net.kyori.event.SimpleEventBus;
 import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
@@ -41,9 +42,9 @@ class MethodAdapterPostOrderTest {
   private final MethodSubscriptionAdapter<Object> methodAdapter = new SimpleMethodSubscriptionAdapter<>(this.bus, new MethodHandleEventExecutorFactory<>());
 
   @Test
-  void testListener() {
+  void testListener() throws PostResult.CompositeException {
     this.methodAdapter.register(new TestListener());
-    this.bus.post(new TestEvent());
+    this.bus.post(new TestEvent()).raise();
     assertEquals(Lists.newArrayList(1, 2, 3), this.results);
   }
 

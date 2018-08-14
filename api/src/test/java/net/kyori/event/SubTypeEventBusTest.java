@@ -33,7 +33,7 @@ class SubTypeEventBusTest {
   private final EventBus<Number> bus = new SimpleEventBus<>();
 
   @Test
-  void testSubTypes() {
+  void testSubTypes() throws PostResult.CompositeException {
     final AtomicReference<boolean[]> calls = new AtomicReference<>();
 
     this.bus.register(Integer.class, event -> calls.get()[0] = true);
@@ -41,15 +41,15 @@ class SubTypeEventBusTest {
     this.bus.register(Double.class, event -> calls.get()[2] = true);
 
     calls.set(new boolean[3]);
-    this.bus.post(1.34f);
+    this.bus.post(1.34f).raise();
     assertArrayEquals(calls.get(), new boolean[]{false, true, false});
 
     calls.set(new boolean[3]);
-    this.bus.post(13);
+    this.bus.post(13).raise();
     assertArrayEquals(calls.get(), new boolean[]{true, true, false});
 
     calls.set(new boolean[3]);
-    this.bus.post(3.14d);
+    this.bus.post(3.14d).raise();
     assertArrayEquals(calls.get(), new boolean[]{false, true, true});
   }
 }

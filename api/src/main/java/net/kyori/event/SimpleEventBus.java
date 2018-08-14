@@ -23,7 +23,7 @@
  */
 package net.kyori.event;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -63,7 +63,7 @@ public class SimpleEventBus<E> implements EventBus<E> {
   @Override
   @SuppressWarnings("unchecked")
   public @NonNull PostResult post(final @NonNull E event) {
-    ImmutableList.Builder<Throwable> exceptions = null; // save on an allocation
+    ImmutableMap.Builder<EventSubscriber<?>, Throwable> exceptions = null; // save on an allocation
     for(final EventSubscriber subscriber : this.registry.subscribers(event)) {
       if(event instanceof Cancellable && (((Cancellable) event).cancelled() && !subscriber.consumeCancelledEvents())) {
         continue;
@@ -75,9 +75,9 @@ public class SimpleEventBus<E> implements EventBus<E> {
         subscriber.invoke(event);
       } catch(final Throwable e) {
         if(exceptions == null) {
-          exceptions = ImmutableList.builder();
+          exceptions = ImmutableMap.builder();
         }
-        exceptions.add(e);
+        exceptions.put(subscriber, e);
       }
     }
     if(exceptions == null) {

@@ -25,6 +25,7 @@ package net.kyori.event.rx2;
 
 import io.reactivex.disposables.Disposable;
 import net.kyori.event.EventBus;
+import net.kyori.event.PostResult;
 import net.kyori.event.SimpleEventBus;
 import org.junit.jupiter.api.Test;
 
@@ -37,17 +38,17 @@ class Rx2AdapterTest {
   private final Rx2SubscriptionAdapter<Object> rx1Adapter = new SimpleRx2SubscriptionAdapter<>(this.bus);
 
   @Test
-  void test() {
+  void test() throws PostResult.CompositeException {
     final AtomicInteger acks = new AtomicInteger();
     final Disposable subscription = this.rx1Adapter.flowable(TestEvent.class)
       .subscribe(event -> acks.incrementAndGet());
     for(int i = 0; i < 3; i++) {
-      this.bus.post((TestEvent) () -> "purple");
+      this.bus.post((TestEvent) () -> "purple").raise();
     }
     assertEquals(3, acks.get());
     subscription.dispose();
     for(int i = 0; i < 3; i++) {
-      this.bus.post((TestEvent) () -> "red");
+      this.bus.post((TestEvent) () -> "red").raise();
     }
     assertEquals(3, acks.get());
   }
