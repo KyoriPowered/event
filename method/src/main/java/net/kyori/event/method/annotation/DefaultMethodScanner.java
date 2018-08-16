@@ -23,7 +23,7 @@
  */
 package net.kyori.event.method.annotation;
 
-import net.kyori.event.PostOrder;
+import net.kyori.event.PostOrders;
 import net.kyori.event.method.MethodScanner;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
 
 /**
  * Implementation of {@link MethodScanner} using the built-in
- * {@link Subscribe} and {@link IgnoreCancelled} annotations.
+ * {@link Subscribe}, {@link IgnoreCancelled} and {@link PostOrder} annotations.
  *
  * @param <L> the listener type
  */
@@ -53,8 +53,8 @@ public class DefaultMethodScanner<L> implements MethodScanner<L> {
   }
 
   @Override
-  public @NonNull PostOrder postOrder(final @NonNull L listener, final @NonNull Method method) {
-    return method.getAnnotation(Subscribe.class).value();
+  public int postOrder(final @NonNull L listener, final @NonNull Method method) {
+    return method.isAnnotationPresent(PostOrder.class) ? method.getAnnotation(PostOrder.class).value() : PostOrders.NORMAL;
   }
 
   @Override

@@ -73,7 +73,7 @@ final class SubscriberRegistry<E> {
         }
       }
 
-      subscribers.sort(Comparator.comparing(EventSubscriber::postOrder));
+      subscribers.sort(Comparator.comparingInt(EventSubscriber::postOrder));
       return subscribers;
     }));
   private final Object lock = new Object();
