@@ -26,7 +26,6 @@ package net.kyori.event.method;
 import com.google.common.base.MoreObjects;
 import net.kyori.event.EventBus;
 import net.kyori.event.EventSubscriber;
-import net.kyori.event.PostOrder;
 import net.kyori.event.ReifiedEvent;
 import net.kyori.event.method.annotation.DefaultMethodScanner;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -91,7 +90,7 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
       }
 
       final Class<? extends E> eventClass = (Class<? extends E>) methodParameterType;
-      final PostOrder postOrder = this.methodScanner.postOrder(listener, method);
+      final int postOrder = this.methodScanner.postOrder(listener, method);
       final boolean consumeCancelled = this.methodScanner.consumeCancelledEvents(listener, method);
       consumer.accept(eventClass, new MethodEventSubscriber<>(eventClass, method, executor, listener, postOrder, consumeCancelled));
     }
@@ -121,15 +120,15 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
     private final @Nullable Type generic;
     private final EventExecutor<E, L> executor;
     private final L listener;
-    private final PostOrder priority;
+    private final int postOrder;
     private final boolean includeCancelled;
 
-    MethodEventSubscriber(final Class<? extends E> eventClass, final @NonNull Method method, final @NonNull EventExecutor<E, L> executor, final @NonNull L listener, final @NonNull PostOrder priority, final boolean includeCancelled) {
+    MethodEventSubscriber(final Class<? extends E> eventClass, final @NonNull Method method, final @NonNull EventExecutor<E, L> executor, final @NonNull L listener, final int postOrder, final boolean includeCancelled) {
       this.event = eventClass;
       this.generic = ReifiedEvent.class.isAssignableFrom(this.event) ? genericType(method.getGenericParameterTypes()[0]) : null;
       this.executor = executor;
       this.listener = listener;
-      this.priority = priority;
+      this.postOrder = postOrder;
       this.includeCancelled = includeCancelled;
     }
 
@@ -150,8 +149,8 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
     }
 
     @Override
-    public @NonNull PostOrder postOrder() {
-      return this.priority;
+    public int postOrder() {
+      return this.postOrder;
     }
 
     @Override
@@ -166,7 +165,7 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
 
     @Override
     public int hashCode() {
-      return Objects.hash(this.event, this.generic, this.executor, this.listener, this.priority, this.includeCancelled);
+      return Objects.hash(this.event, this.generic, this.executor, this.listener, this.postOrder, this.includeCancelled);
     }
 
     @Override
@@ -178,7 +177,7 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
         && Objects.equals(this.generic, that.generic)
         && Objects.equals(this.executor, that.executor)
         && Objects.equals(this.listener, that.listener)
-        && Objects.equals(this.priority, that.priority)
+        && Objects.equals(this.postOrder, that.postOrder)
         && Objects.equals(this.includeCancelled, that.includeCancelled);
     }
 
@@ -189,7 +188,7 @@ public class SimpleMethodSubscriptionAdapter<E, L> implements MethodSubscription
         .add("generic", this.generic)
         .add("executor", this.executor)
         .add("listener", this.listener)
-        .add("priority", this.priority)
+        .add("priority", this.postOrder)
         .add("includeCancelled", this.includeCancelled)
         .toString();
     }

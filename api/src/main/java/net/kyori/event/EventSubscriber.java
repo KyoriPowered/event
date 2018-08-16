@@ -46,12 +46,13 @@ public interface EventSubscriber<E> {
   void invoke(final @NonNull E event) throws Throwable;
 
   /**
-   * Gets the {@link PostOrder} this subscriber should be called at.
+   * Gets the post order this subscriber should be called at.
    *
    * @return the post order of this subscriber
+   * @see PostOrders
    */
-  default @NonNull PostOrder postOrder() {
-    return PostOrder.NORMAL;
+  default int postOrder() {
+    return PostOrders.NORMAL;
   }
 
   /**

@@ -23,8 +23,6 @@
  */
 package net.kyori.event.method.annotation;
 
-import net.kyori.event.PostOrder;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,15 +33,10 @@ import java.lang.annotation.Target;
  * Marks a method as an event subscriber.
  *
  * @see IgnoreCancelled
+ * @see PostOrder
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
-  /**
-   * Gets the post order.
-   *
-   * @return the post order
-   */
-  PostOrder value() default PostOrder.NORMAL;
 }

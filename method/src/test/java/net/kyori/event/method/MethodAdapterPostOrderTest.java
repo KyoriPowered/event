@@ -25,9 +25,10 @@ package net.kyori.event.method;
 
 import com.google.common.collect.Lists;
 import net.kyori.event.EventBus;
-import net.kyori.event.PostOrder;
+import net.kyori.event.PostOrders;
 import net.kyori.event.PostResult;
 import net.kyori.event.SimpleEventBus;
+import net.kyori.event.method.annotation.PostOrder;
 import net.kyori.event.method.annotation.Subscribe;
 import org.junit.jupiter.api.Test;
 
@@ -51,17 +52,19 @@ class MethodAdapterPostOrderTest {
   public final class TestEvent {}
 
   public class TestListener {
-    @Subscribe(value = PostOrder.EARLY)
+    @Subscribe
+    @PostOrder(PostOrders.EARLY)
     public void early(final TestEvent event) {
       MethodAdapterPostOrderTest.this.results.add(1);
     }
 
-    @Subscribe(value = PostOrder.NORMAL)
+    @Subscribe
     public void normal(final TestEvent event) {
       MethodAdapterPostOrderTest.this.results.add(2);
     }
 
-    @Subscribe(value = PostOrder.LATE)
+    @Subscribe
+    @PostOrder(PostOrders.LATE)
     public void late(final TestEvent event) {
       MethodAdapterPostOrderTest.this.results.add(3);
     }

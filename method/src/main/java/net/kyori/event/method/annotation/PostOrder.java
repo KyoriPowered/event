@@ -21,45 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.kyori.event.method;
+package net.kyori.event.method.annotation;
 
 import net.kyori.event.PostOrders;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Determines which methods on a listener should be registered
- * as subscribers, and what properties they should have.
- *
- * @param <L> the listener type
+ * Marks the post order of an event subscriber.
  */
-public interface MethodScanner<L> {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface PostOrder {
   /**
-   * Gets if the factory should generate a subscriber for this method.
+   * Gets the post order of this subscriber.
    *
-   * @param listener the listener being scanned
-   * @param method the method declaration being considered
-   * @return if a subscriber should be registered
-   */
-  boolean shouldRegister(final @NonNull L listener, final @NonNull Method method);
-
-  /**
-   * Gets the post order the resultant subscriber should be called at.
-   *
-   * @param listener the listener
-   * @param method the method
-   * @return the post order of this subscriber
+   * @return the post order
    * @see PostOrders
    */
-  int postOrder(final @NonNull L listener, final @NonNull Method method);
-
-  /**
-   * Gets if cancelled events should be posted to the resultant subscriber.
-   *
-   * @param listener the listener      
-   * @param method the method
-   * @return if cancelled events should be posted
-   */
-  boolean consumeCancelledEvents(final @NonNull L listener, final @NonNull Method method);
+  int value();
 }
