@@ -10,7 +10,7 @@ include 'method-asm'
 findProject(':method-asm')?.name = 'event-method-asm'
 
 include 'rx-1'
-findProject(':rx-1')?.name = 'event-rx1'
+findProject(':rx-1')?.name = 'event-rx-1'
 
 include 'rx-2'
 findProject(':rx-2')?.name = 'event-rx-2'
