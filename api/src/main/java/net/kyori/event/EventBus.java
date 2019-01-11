@@ -66,6 +66,20 @@ public interface EventBus<E> {
   <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber);
 
   /**
+   * Registers the given {@code subscriber} to receive events, and returns an {@link EventSubscription} that can be used to automatically unregister
+   * the event subscriber.
+   *
+   * @param clazz the registered type. the subscriber will only receive events which can be casted to this type.
+   * @param subscriber the subscriber
+   * @param <T> the event type
+   * @return an {@link EventSubscription} that can be used to automatically unregister ths subscriber
+   */
+  default <T extends E> @NonNull EventSubscription fancyRegister(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
+    this.register(clazz, subscriber);
+    return () -> this.unregister(subscriber);
+  }
+
+  /**
    * Unregisters a previously registered {@code subscriber}.
    *
    * @param subscriber the subscriber
