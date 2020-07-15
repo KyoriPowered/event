@@ -121,7 +121,7 @@ public class SimpleEventBus<E> implements EventBus<E> {
 
   @Override
   public <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber) {
-    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
+    this.eventClassCheck(clazz);
     this.registry.register(clazz, subscriber);
   }
 
@@ -142,12 +142,18 @@ public class SimpleEventBus<E> implements EventBus<E> {
 
   @Override
   public <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz) {
-    checkArgument(this.type.isAssignableFrom(clazz), "clazz " + clazz + " cannot be casted to event type " + this.type);
+    this.eventClassCheck(clazz);
     return !this.registry.subscribers(clazz).isEmpty();
   }
 
   @Override
   public @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers() {
     return this.registry.subscribers();
+  }
+
+  private <T extends E> void eventClassCheck(final @NonNull Class<T> clazz) {
+    if (!this.type.isAssignableFrom(clazz)) {
+      throw new IllegalArgumentException("class " + clazz + " cannot be casted to event type " + this.type);
+    }
   }
 }
