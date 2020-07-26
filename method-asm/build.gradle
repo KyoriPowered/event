@@ -1,6 +1,6 @@
 dependencies {
   compile project(':event-method')
-  compile 'org.ow2.asm:asm-debug-all:6.0_BETA'
+  compile 'org.ow2.asm:asm:8.0.1'
 }
 
 jar {
