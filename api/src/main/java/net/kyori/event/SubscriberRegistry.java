@@ -26,8 +26,8 @@ package net.kyori.event;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeToken;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -56,7 +56,7 @@ final class SubscriberRegistry<E> {
    * <p>An event subscriber is mapped to the class it is registered with.</p>
    */
   // technically a Multimap<Class<T>, EventSubscriber<? super T>>
-  private final SetMultimap<Class<?>, EventSubscriber<?>> subscribers = HashMultimap.create();
+  private final SetMultimap<Class<?>, EventSubscriber<?>> subscribers = LinkedHashMultimap.create();
   /**
    * A cache containing a link between an event class, and the eventsubscribers which
    * should be passed the given type of event.
