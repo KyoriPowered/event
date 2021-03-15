@@ -1,9 +1,0 @@
-dependencies {
-  compile project(':event-api')
-}
-
-jar {
-  manifest.attributes(
-    'Automatic-Module-Name': 'net.kyori.event.method'
-  )
-}

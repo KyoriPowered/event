@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017-2020 KyoriPowered
+ * Copyright (c) 2017-2021 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,31 @@
  */
 package net.kyori.event;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkState;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Encapsulates the outcome of a {@link EventBus#post(Object)} call.
+ *
+ * @since 2.0.0
  */
-public final class PostResult {
-  private static final PostResult SUCCESS = new PostResult(Collections.emptyMap());
+public abstract class PostResult {
+  PostResult() {
+    if(!(this instanceof Success || this instanceof Failure)) {
+      throw new IllegalStateException();
+    }
+  }
 
   /**
    * Marks that no exceptions were thrown by subscribers.
    *
    * @return a {@link PostResult} indicating success
+   * @since 2.0.0
    */
   public static @NonNull PostResult success() {
-    return SUCCESS;
+    return Success.INSTANCE;
   }
 
   /**
@@ -52,64 +55,98 @@ public final class PostResult {
    *
    * @param exceptions the exceptions that were thrown
    * @return a {@link PostResult} indicating failure
+   * @since 2.0.0
    */
   public static @NonNull PostResult failure(final @NonNull Map<EventSubscriber<?>, Throwable> exceptions) {
-    checkState(!exceptions.isEmpty(), "no exceptions present");
-    return new PostResult(ImmutableMap.copyOf(exceptions));
-  }
-
-  private final Map<EventSubscriber<?>, Throwable> exceptions;
-
-  private PostResult(final @NonNull Map<EventSubscriber<?>, Throwable> exceptions) {
-    this.exceptions = exceptions;
+    if(exceptions.isEmpty()) {
+      throw new IllegalStateException("no exceptions present");
+    }
+    return new Failure(new HashMap<>(exceptions));
   }
 
   /**
    * Gets if the {@link EventBus#post(Object)} call was successful.
    *
    * @return if the call was successful
+   * @since 2.0.0
    */
-  public boolean wasSuccessful() {
-    return this.exceptions.isEmpty();
-  }
+  public abstract boolean wasSuccessful();
 
   /**
    * Gets the exceptions that were thrown whilst posting the event to subscribers.
    *
    * @return the exceptions thrown by subscribers
+   * @since 3.0.0
    */
-  public @NonNull Map<EventSubscriber<?>, Throwable> exceptions() {
-    return this.exceptions;
-  }
+  public abstract @NonNull Map<EventSubscriber<?>, Throwable> exceptions();
 
   /**
    * Raises a {@link CompositeException} if the posting was not
    * {@link #wasSuccessful() successful}.
    *
    * @throws CompositeException if posting was not successful
+   * @since 3.0.0
    */
-  public void raise() throws CompositeException {
-    if(!this.wasSuccessful()) {
-      throw new CompositeException(this);
+  public abstract void raise() throws CompositeException;
+
+  @Override
+  public abstract String toString();
+
+  private static final class Success extends PostResult {
+    static final Success INSTANCE = new Success();
+
+    @Override
+    public boolean wasSuccessful() {
+      return true;
+    }
+
+    @Override
+    public @NonNull Map<EventSubscriber<?>, Throwable> exceptions() {
+      return Collections.emptyMap();
+    }
+
+    @Override
+    public void raise() {
+    }
+
+    @Override
+    public String toString() {
+      return "PostResult.success()";
     }
   }
 
-  @Override
-  public String toString() {
-    if(this.wasSuccessful()) {
-      return MoreObjects.toStringHelper(this)
-        .add("type", "success")
-        .toString();
-    } else {
-      return MoreObjects.toStringHelper(this)
-        .add("type", "failure")
-        .add("exceptions", this.exceptions().values())
-        .toString();
+  private static final class Failure extends PostResult {
+    private final Map<EventSubscriber<?>, Throwable> exceptions;
+
+    private Failure(final @NonNull Map<EventSubscriber<?>, Throwable> exceptions) {
+      this.exceptions = exceptions;
+    }
+
+    @Override
+    public boolean wasSuccessful() {
+      return this.exceptions.isEmpty();
+    }
+
+    @Override
+    public @NonNull Map<EventSubscriber<?>, Throwable> exceptions() {
+      return this.exceptions;
+    }
+
+    @Override
+    public void raise() throws CompositeException {
+      throw new CompositeException(this);
+    }
+
+    @Override
+    public String toString() {
+      return "PostResult.failure(" + this.exceptions + ")";
     }
   }
 
   /**
    * Exception encapsulating a combined {@link #failure(Map) failure}.
+   *
+   * @since 3.0.0
    */
   public static final class CompositeException extends Exception {
     private final PostResult result;
@@ -123,6 +160,7 @@ public final class PostResult {
      * Gets the result that created this composite exception.
      *
      * @return the result
+     * @since 5.0.0
      */
     public @NonNull PostResult result() {
       return this.result;
@@ -132,6 +170,7 @@ public final class PostResult {
      * Prints all of the stack traces involved in the composite exception.
      *
      * @see Exception#printStackTrace()
+     * @since 5.0.0
      */
     public void printAllStackTraces() {
       this.printStackTrace();

@@ -1,16 +1,11 @@
-rootProject.name = 'event-parent'
+rootProject.name = "event-parent"
 
-include 'api'
-findProject(':api')?.name = 'event-api'
+include("api")
+include("bom")
 
-include 'method'
-findProject(':method')?.name = 'event-method'
-
-include 'method-asm'
-findProject(':method-asm')?.name = 'event-method-asm'
-
-include 'rx-1'
-findProject(':rx-1')?.name = 'event-rx-1'
-
-include 'rx-2'
-findProject(':rx-2')?.name = 'event-rx-2'
+[
+  "api",
+  "bom"
+].each {
+  findProject(":$it")?.name = "event-$it"
+}

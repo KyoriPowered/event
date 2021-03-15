@@ -23,41 +23,25 @@
  */
 package net.kyori.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 /**
- * An event subscriber.
+ * An abstract implementation of a cancellable event.
  *
- * @param <E> the event type
- * @since 2.0.0
+ * <p>This implementation is not always possible to use if {@link EventBus} requires events
+ * to implement an {@code abstract} class.</p>
+ *
+ * @since 5.0.0
  */
-@FunctionalInterface
-public interface EventSubscriber<E> {
-  /**
-   * Invokes this event subscriber.
-   *
-   * @param event the event
-   * @since 5.0.0
-   */
-  void on(final @NonNull E event) throws Throwable;
+public abstract class AbstractCancellable implements Cancellable {
+  // protected to allow children classes to access
+  protected boolean cancelled;
 
-  /**
-   * Gets the post order this subscriber should be called at.
-   *
-   * @return the post order of this subscriber
-   * @since 2.0.0
-   */
-  default int postOrder() {
-    return PostOrders.NORMAL;
+  @Override
+  public boolean cancelled() {
+    return this.cancelled;
   }
 
-  /**
-   * Gets if cancelled events should be consumed by this subscriber.
-   *
-   * @return {@code true} if cancelled events should be consumed, {@code false} otherwise
-   * @since 5.0.0
-   */
-  default boolean acceptsCancelled() {
-    return true;
+  @Override
+  public void cancelled(final boolean cancelled) {
+    this.cancelled = cancelled;
   }
 }

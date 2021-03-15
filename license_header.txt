@@ -1,4 +1,4 @@
-MIT License
+This file is part of event, licensed under the MIT License.
 
 Copyright (c) 2017-2021 KyoriPowered
 

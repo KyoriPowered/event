@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017-2020 KyoriPowered
+ * Copyright (c) 2017-2021 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,84 +23,72 @@
  */
 package net.kyori.event;
 
-import com.google.common.collect.SetMultimap;
+import java.util.function.Predicate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.function.Predicate;
-
 /**
- * Base interface of the library, representing an object which accepts
- * {@link #register(Class, EventSubscriber) registration} of {@link EventSubscriber}s,
- * and supports {@link #post(Object) posting} events to them.
- *
- * <p>{@link EventSubscriber}s will receive all events which are applicable
- * (can be casted) to their registered type.</p>
+ * An event bus.
  *
  * @param <E> the event type
+ * @since 5.0.0
  */
 public interface EventBus<E> {
   /**
-   * Gets the event type of the bus.
+   * Creates an event bus.
+   *
+   * @param type the event type
+   * @param <E> the event type
+   * @return an event bus
+   * @since 5.0.0
+   */
+  static <E> @NonNull EventBus<E> create(final @NonNull Class<E> type) {
+    return new EventBusImpl<>(type);
+  }
+
+  /**
+   * Gets the type of events accepted by this event bus.
    *
    * <p>This is represented by the <code>E</code> type parameter.</p>
    *
    * @return the event type
+   * @since 5.0.0
    */
-  @NonNull Class<E> eventType();
+  @NonNull Class<E> type();
 
   /**
    * Posts an event to all registered subscribers.
    *
    * @param event the event
    * @return the post result of the operation
+   * @since 2.0.0
    */
   @NonNull PostResult post(final @NonNull E event);
 
   /**
-   * Registers the given {@code subscriber} to receive events.
+   * Determines whether or not the specified event has been subscribed to.
    *
-   * @param clazz the registered type. the subscriber will only receive events which can be casted to this type.
-   * @param subscriber the subscriber
-   * @param <T> the event type
+   * @param type the event type
+   * @return {@code true} if the event has subscribers, {@code false} otherwise
+   * @since 5.0.0
    */
-  <T extends E> void register(final @NonNull Class<T> clazz, final @NonNull EventSubscriber<? super T> subscriber);
+  boolean subscribed(final @NonNull Class<? extends E> type);
 
   /**
-   * Unregisters a previously registered {@code subscriber}.
+   * Registers the given {@code subscriber} to receive events.
    *
+   * @param event the event type
    * @param subscriber the subscriber
+   * @param <T> the event type
+   * @return an event subscription
+   * @since 5.0.0
    */
-  void unregister(final @NonNull EventSubscriber<?> subscriber);
+  <T extends E> @NonNull EventSubscription subscribe(final @NonNull Class<T> event, final @NonNull EventSubscriber<? super T> subscriber);
 
   /**
    * Unregisters all subscribers matching the {@code predicate}.
    *
    * @param predicate the predicate to test subscribers for removal
+   * @since 5.0.0
    */
-  void unregister(final @NonNull Predicate<EventSubscriber<?>> predicate);
-
-  /**
-   * Unregisters all subscribers.
-   */
-  void unregisterAll();
-
-  /**
-   * Determines whether or not the specified event has subscribers.
-   *
-   * @param clazz the event clazz
-   * @return whether or not the specified event has subscribers
-   * @param <T> the event type
-   */
-  <T extends E> boolean hasSubscribers(final @NonNull Class<T> clazz);
-
-  /**
-   * Gets an immutable multimap containing all of the subscribers
-   * currently registered.
-   *
-   * <p>Each subscriber is mapped to the type defined when it was
-   * initially {@link #register(Class, EventSubscriber) registered}.</p>
-   *
-   * @return a multimap of the current subscribers
-   */
-  @NonNull SetMultimap<Class<?>, EventSubscriber<?>> subscribers();
+  void unsubscribeIf(final @NonNull Predicate<EventSubscriber<? super E>> predicate);
 }
