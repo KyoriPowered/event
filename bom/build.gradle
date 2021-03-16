@@ -1,0 +1,19 @@
+plugins {
+  id("java-platform")
+}
+
+indra {
+  configurePublications {
+    from components.javaPlatform
+  }
+}
+
+dependencies {
+  constraints {
+    [
+      "api"
+    ].each {
+      api(project(":event-$it"))
+    }
+  }
+}

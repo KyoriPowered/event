@@ -1,7 +1,7 @@
 /*
  * This file is part of event, licensed under the MIT License.
  *
- * Copyright (c) 2017-2020 KyoriPowered
+ * Copyright (c) 2017-2021 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,26 +31,38 @@ package net.kyori.event;
  * ordered using the natural ordering of Java integers.</p>
  *
  * <p>Some "standard" post orders are expressed as constants on this class.</p>
+ *
+ * @since 3.0.0
  */
 public interface PostOrders {
   /**
    * Marks that the subscriber should be called first, before all other subscribers.
+   *
+   * @since 3.0.0
    */
   int FIRST = -100;
   /**
    * Marks that the subscriber should be called before {@link #NORMAL normal} subscribers.
+   *
+   * @since 3.0.0
    */
   int EARLY = -50;
   /**
    * Marks that the subscriber should be called with no special priority.
+   *
+   * @since 3.0.0
    */
   int NORMAL = 0;
   /**
    * Marks that the subscriber should be called after {@link #NORMAL normal} subscribers.
+   *
+   * @since 3.0.0
    */
   int LATE = 50;
   /**
    * Marks that the subscriber should be called last, after all other subscribers.
+   *
+   * @since 3.0.0
    */
   int LAST = 100;
 }

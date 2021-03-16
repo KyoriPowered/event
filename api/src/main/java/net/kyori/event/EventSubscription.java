@@ -23,41 +23,17 @@
  */
 package net.kyori.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 /**
- * An event subscriber.
+ * An event subscription.
  *
- * @param <E> the event type
- * @since 2.0.0
+ * @since 5.0.0
  */
 @FunctionalInterface
-public interface EventSubscriber<E> {
+public interface EventSubscription {
   /**
-   * Invokes this event subscriber.
+   * Unsubscribes, preventing the subscriber behind this subscription from receiving any more events.
    *
-   * @param event the event
    * @since 5.0.0
    */
-  void on(final @NonNull E event) throws Throwable;
-
-  /**
-   * Gets the post order this subscriber should be called at.
-   *
-   * @return the post order of this subscriber
-   * @since 2.0.0
-   */
-  default int postOrder() {
-    return PostOrders.NORMAL;
-  }
-
-  /**
-   * Gets if cancelled events should be consumed by this subscriber.
-   *
-   * @return {@code true} if cancelled events should be consumed, {@code false} otherwise
-   * @since 5.0.0
-   */
-  default boolean acceptsCancelled() {
-    return true;
-  }
+  void unsubscribe();
 }
