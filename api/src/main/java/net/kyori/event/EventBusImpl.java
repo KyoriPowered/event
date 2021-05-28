@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import net.kyori.coffee.reflection.Types;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 final class EventBusImpl<E> implements EventBus<E> {
@@ -41,9 +40,11 @@ final class EventBusImpl<E> implements EventBus<E> {
   private final Map<Class<? extends E>, List<EventSubscriber<? super E>>> baked = new HashMap<>();
   private final Object lock = new Object();
   private final Class<E> type;
+  private final Accepts<E> accepts;
 
-  EventBusImpl(final Class<E> type) {
+  EventBusImpl(final Class<E> type, final Accepts<E> accepts) {
     this.type = type;
+    this.accepts = accepts;
   }
 
   @Override
@@ -76,12 +77,7 @@ final class EventBusImpl<E> implements EventBus<E> {
   }
 
   private boolean accepts(final E event, final EventSubscriber<? super E> subscriber) {
-    if(!subscriber.acceptsCancelled()) {
-      if(event instanceof Cancellable && ((Cancellable) event).cancelled()) {
-        return false;
-      }
-    }
-    return true;
+    return this.accepts.accepts(this.type, event, subscriber);
   }
 
   @Override
@@ -137,7 +133,7 @@ final class EventBusImpl<E> implements EventBus<E> {
   }
 
   private Collection<? extends Class<?>> findClasses(final Class<?> type) {
-    final Collection<? extends Class<?>> classes = Types.ancestors(type);
+    final Collection<? extends Class<?>> classes = Internals.ancestors(type);
     classes.removeIf(klass -> !this.type.isAssignableFrom(klass));
     return classes;
   }

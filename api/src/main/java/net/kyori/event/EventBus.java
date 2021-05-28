@@ -42,7 +42,19 @@ public interface EventBus<E> {
    * @since 5.0.0
    */
   static <E> @NonNull EventBus<E> create(final @NonNull Class<E> type) {
-    return new EventBusImpl<>(type);
+    return create(type, Accepts.nonCancelledWhenNotAcceptingCancelled());
+  }
+
+  /**
+   * Creates an event bus.
+   *
+   * @param type the event type
+   * @param <E> the event type
+   * @return an event bus
+   * @since 5.0.0
+   */
+  static <E> @NonNull EventBus<E> create(final @NonNull Class<E> type, final @NonNull Accepts<E> accepts) {
+    return new EventBusImpl<>(type, accepts);
   }
 
   /**
@@ -91,4 +103,39 @@ public interface EventBus<E> {
    * @since 5.0.0
    */
   void unsubscribeIf(final @NonNull Predicate<EventSubscriber<? super E>> predicate);
+
+  /**
+   * An acceptor.
+   *
+   * @param <E> the event type
+   * @since 5.0.0
+   */
+  interface Accepts<E> {
+    /**
+     * The default acceptor.
+     *
+     * @param <E> the event type
+     * @return the default acceptor
+     */
+    static <E> @NonNull Accepts<E> nonCancelledWhenNotAcceptingCancelled() {
+      return (type, event, subscriber) -> {
+        if(!subscriber.acceptsCancelled()) {
+          if(event instanceof Cancellable && ((Cancellable) event).cancelled()) {
+            return false;
+          }
+        }
+        return true;
+      };
+    }
+
+    /**
+     * Tests if a subscriber accepts an event.
+     *
+     * @param type the event type
+     * @param event the event
+     * @param subscriber the event subscriber
+     * @return {@code true} if {@code subscriber} accepts the {@code event}
+     */
+    boolean accepts(final Class<E> type, final @NonNull E event, final @NonNull EventSubscriber<? super E> subscriber);
+  }
 }
