@@ -2,6 +2,8 @@
 /.idea/
 /api/build/
 /api/out/
+/bom/build/
+/bom/out/
 /method/build/
 /method/out/
 /method-asm/build/
