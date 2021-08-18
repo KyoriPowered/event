@@ -1,6 +1,6 @@
 buildscript {
   ext {
-    indraVersion = "1.3.1"
+    indraVersion = "2.0.6"
   }
 }
 
@@ -8,7 +8,7 @@ plugins {
   id "net.kyori.indra" version "$indraVersion" apply false
   id "net.kyori.indra.checkstyle" version "$indraVersion" apply false
   id "net.kyori.indra.license-header" version "$indraVersion" apply false
-  id "net.kyori.indra.publishing.sonatype" version "$indraVersion" apply false
+  id "net.kyori.indra.publishing.sonatype" version "$indraVersion"
 }
 
 group("net.kyori")
@@ -38,7 +38,7 @@ subprojects {
     }
   }
 
-  apply plugin: "net.kyori.indra.publishing.sonatype"
+  apply plugin: "net.kyori.indra.publishing"
 
   indra {
     github("KyoriPowered", "event") {
