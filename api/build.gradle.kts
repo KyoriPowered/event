@@ -1,9 +1,13 @@
+plugins {
+  id("event.common")
+}
+
 dependencies {
   compileOnlyApi("org.checkerframework:checker-qual:3.13.0")
 }
 
-jar {
+tasks.jar {
   manifest.attributes(
-    "Automatic-Module-Name": "net.kyori.event"
+    "Automatic-Module-Name" to "net.kyori.event"
   )
 }

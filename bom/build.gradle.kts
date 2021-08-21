@@ -1,18 +1,17 @@
 plugins {
+  id("event.base")
   id("java-platform")
 }
 
 indra {
   configurePublications {
-    from components.javaPlatform
+    from(components["javaPlatform"])
   }
 }
 
 dependencies {
   constraints {
-    [
-      "api"
-    ].each {
+    listOf("api").forEach {
       api(project(":event-$it"))
     }
   }
