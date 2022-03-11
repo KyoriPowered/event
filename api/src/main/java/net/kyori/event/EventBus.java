@@ -116,6 +116,7 @@ public interface EventBus<E> {
      *
      * @param <E> the event type
      * @return the default acceptor
+     * @since 5.0.0
      */
     static <E> @NonNull Accepts<E> nonCancelledWhenNotAcceptingCancelled() {
       return (type, event, subscriber) -> {
@@ -135,6 +136,7 @@ public interface EventBus<E> {
      * @param event the event
      * @param subscriber the event subscriber
      * @return {@code true} if {@code subscriber} accepts the {@code event}
+     * @since 5.0.0
      */
     boolean accepts(final Class<E> type, final @NonNull E event, final @NonNull EventSubscriber<? super E> subscriber);
   }
