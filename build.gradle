@@ -15,6 +15,10 @@ group("net.kyori")
 version("5.0.0-SNAPSHOT")
 description("An event bus system.")
 
+indraSonatype {
+  useAlternateSonatypeOSSHost("s01")
+}
+
 subprojects {
   if(name != "event-bom") {
     apply plugin: "net.kyori.indra"
