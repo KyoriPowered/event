@@ -1,5 +1,5 @@
 dependencies {
-  compileOnlyApi("org.checkerframework:checker-qual:3.22.2")
+  compileOnlyApi("org.checkerframework:checker-qual:3.25.0")
 }
 
 jar {
