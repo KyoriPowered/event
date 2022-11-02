@@ -7,7 +7,7 @@ buildscript {
 plugins {
   id "net.kyori.indra" version "$indraVersion" apply false
   id "net.kyori.indra.checkstyle" version "$indraVersion" apply false
-  id "net.kyori.indra.license-header" version "$indraVersion" apply false
+  id "net.kyori.indra.licenser.spotless" version "$indraVersion" apply false
   id "net.kyori.indra.publishing.sonatype" version "$indraVersion"
 }
 
@@ -23,12 +23,12 @@ subprojects {
   if(name != "event-bom") {
     apply plugin: "net.kyori.indra"
     apply plugin: "net.kyori.indra.checkstyle"
-    apply plugin: "net.kyori.indra.license-header"
+    apply plugin: "net.kyori.indra.licenser.spotless"
 
     repositories {
       mavenLocal()
       mavenCentral()
-      sonatypeSnapshots()
+      sonatype.ossSnapshots()
     }
 
     dependencies {
