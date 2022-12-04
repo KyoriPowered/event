@@ -1,11 +1,13 @@
-rootProject.name = "event-parent"
+plugins {
+  id("org.gradle.toolchains.foojay-resolver") version "0.2"
+}
 
-include("api")
-include("bom")
+rootProject.name = "event-parent"
 
 [
   "api",
   "bom"
 ].each {
+  include it
   findProject(":$it")?.name = "event-$it"
 }
