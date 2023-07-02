@@ -34,8 +34,8 @@ subprojects {
     dependencies {
       checkstyle("ca.stellardrift:stylecheck:0.2.1")
       testImplementation("com.google.guava:guava-testlib:32.0.1-jre")
-      testImplementation("com.google.truth:truth:1.1.4")
-      testImplementation("com.google.truth.extensions:truth-java8-extension:1.1.4")
+      testImplementation("com.google.truth:truth:1.1.5")
+      testImplementation("com.google.truth.extensions:truth-java8-extension:1.1.5")
       testImplementation(platform("org.junit:junit-bom:5.9.3"))
       testImplementation("org.junit.jupiter:junit-jupiter-api")
       testImplementation("org.junit.jupiter:junit-jupiter-engine")
