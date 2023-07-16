@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -35,9 +36,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 final class EventBusImpl<E> implements EventBus<E> {
   private static final Comparator<EventSubscriber<?>> COMPARATOR = Comparator.comparingInt(EventSubscriber::postOrder);
-  private final Map<Class<? extends E>, Collection<? extends Class<?>>> classes = new HashMap<>();
-  private final Map<Class<? extends E>, List<EventSubscriber<? super E>>> unbaked = new HashMap<>();
-  private final Map<Class<? extends E>, List<EventSubscriber<? super E>>> baked = new HashMap<>();
+  private final Map<Class<? extends E>, Collection<? extends Class<?>>> classes = new IdentityHashMap<>();
+  private final Map<Class<? extends E>, List<EventSubscriber<? super E>>> unbaked = new IdentityHashMap<>();
+  private final Map<Class<? extends E>, List<EventSubscriber<? super E>>> baked = new IdentityHashMap<>();
   private final Object lock = new Object();
   private final Class<E> type;
   private final Accepts<E> accepts;
